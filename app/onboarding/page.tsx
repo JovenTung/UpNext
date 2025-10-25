@@ -4,7 +4,7 @@ import { useState, useId } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store/useStore";
 
-/* ---------- helpers ---------- */
+/* helpers*/
 const BrandBtn: React.FC<
   React.ButtonHTMLAttributes<HTMLButtonElement> & { full?: boolean }
 > = ({ children, full, className = "", ...props }) => (
@@ -49,7 +49,7 @@ const Pill: React.FC<{
   </button>
 );
 
-/* ---------- subjects mini (last step) ---------- */
+/* subjects mini */
 type Subject = { id: string; name: string; color: string };
 const SUBJECT_COLORS = ["#E57373", "#64B5F6", "#81C784", "#FFD54F", "#9575CD"];
 
@@ -134,7 +134,7 @@ function SubjectsMini({
   );
 }
 
-/* ---------- onboarding ---------- */
+/* onboarding */
 export default function OnboardingPage() {
   const router = useRouter();
   const setUser = useStore((s) => s.setUser);
