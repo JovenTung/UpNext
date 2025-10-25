@@ -30,7 +30,9 @@ interface Task {
   repeat: RepeatRule
   isDone?: boolean
   isAiBreak?: boolean
+  assignmentId?: string   // ← NEW: link a task to an assignment
 }
+
 
 // Default export for the /dashboard route
 export default function Page() {
@@ -350,20 +352,22 @@ function LoggedInHome() {
         </div>
 
         {/* Calendar Section */}
-        <div className="mt-6 rounded-2xl bg-[#CCD8E180] p-4 shadow-sm md:p-6">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-lg font-bold md:text-xl">Schedule</h2>
-          </div>
+<div className="mt-6 rounded-2xl bg-[#CCD8E180] p-4 shadow-sm md:p-6">
+  <div className="mb-2 flex items-center justify-between">
+    <h2 className="text-lg font-bold md:text-xl">Schedule</h2>
+  </div>
 
-          <CalendarCard
-            tasks={tasks}
-            showBreaks={showBreaks}
-            onToggleBreaks={() => setShowBreaks((s) => !s)}
-            onUpsertTask={upsertTask}
-            onRemoveTask={removeTask}
-            dueMap={dueMap}
-          />
-        </div>
+  <CalendarCard
+    tasks={tasks}
+    showBreaks={showBreaks}
+    onToggleBreaks={() => setShowBreaks((s) => !s)}
+    onUpsertTask={upsertTask}
+    onRemoveTask={removeTask}
+    dueMap={dueMap}
+    assignments={assignments}   // ← NEW
+  />
+</div>
+
       </div>
     </section>
   )
@@ -452,6 +456,7 @@ function CalendarCard({
   onUpsertTask,
   onRemoveTask,
   dueMap,
+  assignments, // ← NEW
 }: {
   tasks: Task[]
   showBreaks: boolean
@@ -459,7 +464,9 @@ function CalendarCard({
   onUpsertTask: (t: Task) => void
   onRemoveTask: (id: string) => void
   dueMap: Map<string, AssignmentSummary[]>
+  assignments: AssignmentSummary[] // ← NEW
 }) {
+
   const [mode, setMode] = useState<ViewMode>('month')
   const [cursor, setCursor] = useState<Date>(startOfDay(new Date()))
   const [modalState, setModalState] = useState<{
@@ -534,7 +541,7 @@ function CalendarCard({
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-slate-600">Rest</span>
+            <span className="text-slate-600">AI-Recommended Rest</span>
             <button
               onClick={onToggleBreaks}
               className={`relative h-5 w-10 rounded-full border transition ${
@@ -628,19 +635,21 @@ function CalendarCard({
       )}
 
       {modalState.open && (
-        <TaskModal
-          initial={modalState.editing ?? undefined}
-          onClose={() => setModalState({ open: false })}
-          onSave={(t) => {
-            onUpsertTask(t)
-            setModalState({ open: false })
-          }}
-          onDelete={(id) => {
-            onRemoveTask(id)
-            setModalState({ open: false })
-          }}
-        />
-      )}
+  <TaskModal
+    initial={modalState.editing ?? undefined}
+    onClose={() => setModalState({ open: false })}
+    onSave={(t) => {
+      onUpsertTask(t)
+      setModalState({ open: false })
+    }}
+    onDelete={(id) => {
+      onRemoveTask(id)
+      setModalState({ open: false })
+    }}
+    assignments={assignments}  // ← NEW
+  />
+)}
+
 
       {/* ✅ New: show the DueModal when due labels are clicked */}
       {dueModalItems && (
@@ -1054,12 +1063,15 @@ function TaskModal({
   onClose,
   onSave,
   onDelete,
+  assignments, // ← NEW
 }: {
   initial?: Task
   onClose: () => void
   onSave: (t: Task) => void
   onDelete: (id: string) => void
+  assignments: AssignmentSummary[] // ← NEW
 }) {
+
   const isEditing = Boolean(initial)
 
   const [title, setTitle] = useState(initial?.title ?? '')
@@ -1111,20 +1123,25 @@ function TaskModal({
   }
 
   const save = () => {
-    const id = initial?.id ?? `t_${crypto.randomUUID()}`
-    onSave({
-      id,
-      title: title || 'Untitled',
-      type,
-      subject: type === 'blocked' || type === 'rest' ? undefined : subject,
-      color: effectiveColor,
-      start: new Date(start).toISOString(),
-      end: new Date(end).toISOString(),
-      repeat: buildRepeat(),
-      isDone: type === 'focus' ? isDone : undefined,
-      isAiBreak: type === 'rest' ? true : undefined,
-    })
-  }
+  const id = initial?.id ?? `t_${crypto.randomUUID()}`
+  onSave({
+    id,
+    title: title || 'Untitled',
+    type,
+    subject: type === 'blocked' || type === 'rest' ? undefined : subject,
+    color: effectiveColor,
+    start: new Date(start).toISOString(),
+    end: new Date(end).toISOString(),
+    repeat: buildRepeat(),
+    isDone: type === 'focus' ? isDone : undefined,
+    isAiBreak: type === 'rest' ? true : undefined,
+    assignmentId: type === 'focus' ? assignmentId : undefined, // ← NEW
+  })
+}
+
+
+  const [assignmentId, setAssignmentId] = useState<string | undefined>(initial?.assignmentId)
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 md:items-center">
@@ -1143,213 +1160,185 @@ function TaskModal({
         </div>
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <label className="text-xs">
-            <div className="mb-1 font-semibold">Title</div>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
-              placeholder="e.g., Study: Algorithms"
-            />
-          </label>
+  {/* Title */}
+  <label className="text-xs">
+    <div className="mb-1 font-semibold">Title</div>
+    <input
+      value={title}
+      onChange={(e) => setTitle(e.target.value)}
+      className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
+      placeholder="e.g., Study: Algorithms"
+    />
+  </label>
 
-          <label className="text-xs">
-            <div className="mb-1 font-semibold">Type</div>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value as TaskType)}
-              className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
-            >
-              <option value="focus">Study/Coursework</option>
-              <option value="blocked">Other Commitments</option>
-              <option value="rest">Rest</option>
-            </select>
-          </label>
+  {/* Type */}
+  <label className="text-xs">
+    <div className="mb-1 font-semibold">Type</div>
+    <select
+      value={type}
+      onChange={(e) => setType(e.target.value as TaskType)}
+      className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
+    >
+      <option value="focus">Study/Coursework</option>
+      <option value="blocked">Other Commitments</option>
+      <option value="rest">Rest</option>
+    </select>
+  </label>
 
-          {type !== 'blocked' && type !== 'rest' && (
-            <label className="text-xs">
-              <div className="mb-1 font-semibold">Subject</div>
-              <select
-                value={subject}
-                onChange={(e) => setSubject(e.target.value as SubjectKey)}
-                className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
-              >
-                {Object.entries(SUBJECTS).map(([k, v]) => (
-                  <option key={k} value={k}>
-                    {v.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+  {/* Subject + Assignment (same row). Only for focus tasks */}
+  {type !== 'blocked' && type !== 'rest' && (
+    <>
+      {/* Subject */}
+      <label className="text-xs">
+        <div className="mb-1 font-semibold">Subject</div>
+        <select
+          value={subject ?? ''} // allow none
+          onChange={(e) => {
+            const v = e.target.value
+            setSubject(v ? (v as SubjectKey) : undefined)
+          }}
+          className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
+        >
+          <option value="">(None)</option>
+          {Object.entries(SUBJECTS).map(([k, v]) => (
+            <option key={k} value={k}>
+              {v.label}
+            </option>
+          ))}
+        </select>
+      </label>
 
-          <div />
+      {/* Assignment */}
+      <label className="text-xs">
+        <div className="mb-1 font-semibold">Assignment</div>
+        <select
+          value={assignmentId ?? ''} // allow none
+          onChange={(e) => setAssignmentId(e.target.value || undefined)}
+          className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
+        >
+          <option value="">(None)</option>
+          {assignments.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.title}
+            </option>
+          ))}
+        </select>
+      </label>
+    </>
+  )}
 
-          <label className="text-xs">
-            <div className="mb-1 font-semibold">Start</div>
-            <input
-              type="datetime-local"
-              value={start}
-              onChange={(e) => setStart(e.target.value)}
-              className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
-            />
-          </label>
+  {/* Start */}
+  <label className="text-xs">
+    <div className="mb-1 font-semibold">Start</div>
+    <input
+      type="datetime-local"
+      value={start}
+      onChange={(e) => setStart(e.target.value)}
+      className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
+    />
+  </label>
 
-          <label className="text-xs">
-            <div className="mb-1 font-semibold">End</div>
-            <input
-              type="datetime-local"
-              value={end}
-              onChange={(e) => setEnd(e.target.value)}
-              className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
-            />
-          </label>
+  {/* End */}
+  <label className="text-xs">
+    <div className="mb-1 font-semibold">End</div>
+    <input
+      type="datetime-local"
+      value={end}
+      onChange={(e) => setEnd(e.target.value)}
+      className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
+    />
+  </label>
 
-          <div className="col-span-full mt-1 rounded-xl border bg-slate-50 p-3">
-            <div className="mb-2 text-xs font-semibold">Repeat</div>
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              {(
-                ['none', 'daily', 'weekly', 'monthly'] as RepeatRule['kind'][]
-              ).map((k) => (
-                <button
-                  key={k}
-                  className={`rounded-full px-3 py-1 ${
-                    repeatKind === k ? 'bg-black text-white' : 'bg-white'
-                  }`}
-                  onClick={() => setRepeatKind(k)}
-                >
-                  {k}
-                </button>
-              ))}
+  {/* Repeat box */}
+  <div className="col-span-full mt-1 rounded-xl border bg-slate-50 p-3">
+    <div className="mb-2 text-xs font-semibold">Repeat</div>
+    <div className="flex flex-wrap items-center gap-2 text-xs">
+      {(['none', 'daily', 'weekly', 'monthly'] as RepeatRule['kind'][]).map((k) => (
+        <button
+          key={k}
+          className={`rounded-full px-3 py-1 ${repeatKind === k ? 'bg-black text-white' : 'bg-white'}`}
+          onClick={() => setRepeatKind(k)}
+        >
+          {k}
+        </button>
+      ))}
 
-              {repeatKind !== 'none' && (
-                <>
-                  <span className="text-slate-500">every</span>
-                  <input
-                    type="number"
-                    min={1}
-                    value={repeatInterval}
-                    onChange={(e) =>
-                      setRepeatInterval(parseInt(e.target.value) || 1)
-                    }
-                    className="w-16 rounded-lg border px-2 py-1"
-                  />
-                  <span className="text-slate-500">
-                    {repeatKind === 'daily'
-                      ? 'day(s)'
-                      : repeatKind === 'weekly'
-                      ? 'week(s)'
-                      : 'month(s)'}
-                  </span>
-                </>
-              )}
+      {repeatKind !== 'none' && (
+        <>
+          <span className="text-slate-500">every</span>
+          <input
+            type="number"
+            min={1}
+            value={repeatInterval}
+            onChange={(e) => setRepeatInterval(parseInt(e.target.value) || 1)}
+            className="w-16 rounded-lg border px-2 py-1"
+          />
+          <span className="text-slate-500">
+            {repeatKind === 'daily' ? 'day(s)' : repeatKind === 'weekly' ? 'week(s)' : 'month(s)'}
+          </span>
+        </>
+      )}
 
-              {repeatKind === 'weekly' && (
-                <div className="ml-2 flex items-center gap-1">
-                  {[0, 1, 2, 3, 4, 5, 6].map((d) => (
-                    <button
-                      key={d}
-                      onClick={() =>
-                        setByWeekday((prev) =>
-                          prev.includes(d)
-                            ? prev.filter((x) => x !== d)
-                            : [...prev, d]
-                        )
-                      }
-                      className={`rounded-md border px-2 py-1 ${
-                        byWeekday.includes(d)
-                          ? 'bg-black text-white'
-                          : 'bg-white'
-                      }`}
-                    >
-                      {'SMTWTFS'[d]}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* ✅ NEW: Ends controls */}
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
-              <span className="font-semibold text-slate-600">Ends</span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  className={`rounded-full px-3 py-1 ${
-                    repeatEndMode === 'never'
-                      ? 'bg-black text-white'
-                      : 'bg-white'
-                  }`}
-                  onClick={() => setRepeatEndMode('never')}
-                >
-                  Never
-                </button>
-                <button
-                  type="button"
-                  className={`rounded-full px-3 py-1 ${
-                    repeatEndMode === 'on' ? 'bg-black text-white' : 'bg-white'
-                  }`}
-                  onClick={() => setRepeatEndMode('on')}
-                >
-                  On
-                </button>
-                {repeatEndMode === 'on' && (
-                  <input
-                    type="date"
-                    value={repeatEndDate}
-                    onChange={(e) => setRepeatEndDate(e.target.value)}
-                    className="rounded-lg border px-2 py-1"
-                  />
-                )}
-              </div>
-            </div>
-            {/* ✅ END of new block */}
-          </div>
-
-          {type === 'focus' && (
-            <label className="col-span-full mt-1 flex items-center gap-2 text-xs">
-              <input
-                type="checkbox"
-                checked={isDone}
-                onChange={(e) => setIsDone(e.target.checked)}
-              />
-              <span>Mark as done when completed</span>
-            </label>
-          )}
-        </div>
-
-        <div className="mt-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-slate-500">Preview color</span>
-            <span
-              className="inline-block h-4 w-4 rounded"
-              style={{ backgroundColor: effectiveColor }}
-            />
-          </div>
-          <div className="flex gap-2">
-            {isEditing && (
-              <button
-                className="rounded-lg border px-3 py-2 text-sm"
-                onClick={() => initial && onDelete(initial.id)}
-              >
-                Delete
-              </button>
-            )}
+      {repeatKind === 'weekly' && (
+        <div className="ml-2 flex items-center gap-1">
+          {[0, 1, 2, 3, 4, 5, 6].map((d) => (
             <button
-              className="rounded-lg border px-3 py-2 text-sm"
-              onClick={onClose}
+              key={d}
+              onClick={() =>
+                setByWeekday((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]))
+              }
+              className={`rounded-md border px-2 py-1 ${byWeekday.includes(d) ? 'bg-black text-white' : 'bg-white'}`}
             >
-              Cancel
+              {'SMTWTFS'[d]}
             </button>
-            <button
-              className="rounded-lg bg-black px-3 py-2 text-sm text-white"
-              onClick={save}
-            >
-              Save
-            </button>
-          </div>
+          ))}
         </div>
+      )}
+    </div>
+
+    {/* Ends controls */}
+    <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+      <span className="font-semibold text-slate-600">Ends</span>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          className={`rounded-full px-3 py-1 ${repeatEndMode === 'never' ? 'bg-black text-white' : 'bg-white'}`}
+          onClick={() => setRepeatEndMode('never')}
+        >
+          Never
+        </button>
+        <button
+          type="button"
+          className={`rounded-full px-3 py-1 ${repeatEndMode === 'on' ? 'bg-black text-white' : 'bg-white'}`}
+          onClick={() => setRepeatEndMode('on')}
+        >
+          On
+        </button>
+        {repeatEndMode === 'on' && (
+          <input
+            type="date"
+            value={repeatEndDate}
+            onChange={(e) => setRepeatEndDate(e.target.value)}
+            className="rounded-lg border px-2 py-1"
+          />
+        )}
       </div>
     </div>
+  </div>
+
+  {/* Mark done (only for focus) */}
+  {type === 'focus' && (
+    <label className="col-span-full mt-1 flex items-center gap-2 text-xs">
+      <input
+        type="checkbox"
+        checked={isDone}
+        onChange={(e) => setIsDone(e.target.checked)}
+      />
+      <span>Mark as done when completed</span>
+    </label>
+  )}
+</div>
+        </div>
+      </div>
   )
 }
