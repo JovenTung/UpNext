@@ -58,13 +58,14 @@ function PillGroup({
 }
 
 type Subject = { id: string; name: string; color: string }
-const COLOR_SWATCHES = ['#E57373', '#64B5F6', '#81C784', '#FFD54F', '#9575CD']
+const COLOR_SWATCHES = ['#E57373', '#64B5F6', '#81C784', '#E5A345', '#9575CD']
 
 function SubjectsPanel() {
   const gen = useId()
   const [subjects, setSubjects] = useState<Subject[]>([
     { id: gen + '-1', name: 'Data Science', color: '#E57373' },
     { id: gen + '-2', name: 'Algorithms & Analysis', color: '#81C784' },
+    { id: gen + '-3', name: 'Usability Engineering', color: '#E5A345'},
   ])
   const [name, setName] = useState('')
   const [color, setColor] = useState(COLOR_SWATCHES[1])
