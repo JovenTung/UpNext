@@ -1,7 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { useStore } from '@/lib/store/useStore'
 import type { Assignment } from '@/lib/types'
 import ProgressRing from '@/components/ProgressRing'
@@ -10,13 +9,20 @@ export default function AssignmentsPage() {
   const assignments = useStore((s) => s.assignments)
   const addAssignment = useStore((s) => s.addAssignment)
 
-  const searchParams = useSearchParams()
-  const requestedTab = searchParams?.get('tab')
+  const [tab, setTab] = useState<'add' | 'view'>(() =>
+    assignments.length ? 'view' : 'add'
+  )
 
-  const [tab, setTab] = useState<'add' | 'view'>(() => {
-    if (requestedTab === 'add') return 'add'
-    return assignments.length ? 'view' : 'add'
-  })
+  // read query param on client after mount to avoid CSR-bailout warning
+  useEffect(() => {
+    try {
+      if (typeof window === 'undefined') return
+      const sp = new URLSearchParams(window.location.search)
+      if (sp.get('tab') === 'add') setTab('add')
+    } catch (e) {
+      // ignore
+    }
+  }, [])
 
   const [specMode, setSpecMode] = useState<'pdf' | 'text' | null>(null)
   const [specText, setSpecText] = useState('')
@@ -26,7 +32,12 @@ export default function AssignmentsPage() {
   const computeProgress = (a: Partial<Assignment>) => {
     const u = Number(a.understanding ?? 1)
     const c = Number(a.confidence ?? 1)
-    const started = (a as any).started === 'yes' ? 1 : (a as any).started === 'partly' ? 0.5 : 0
+    const started =
+      (a as any).started === 'yes'
+        ? 1
+        : (a as any).started === 'partly'
+        ? 0.5
+        : 0
     const base = ((u - 1) / 4) * 40 + ((c - 1) / 4) * 40 + started * 20
     return Math.round(Math.max(0, Math.min(100, base)))
   }
@@ -41,23 +52,37 @@ export default function AssignmentsPage() {
     const idealStartDate = String(fd.get('idealStartDate') || '')
     const comfortableDueDate = String(fd.get('comfortableDueDate') || '')
 
-    const understanding = Number(fd.get('understanding') || 1) as 1 | 2 | 3 | 4 | 5
+    const understanding = Number(fd.get('understanding') || 1) as
+      | 1
+      | 2
+      | 3
+      | 4
+      | 5
     const confidence = Number(fd.get('confidence') || 1) as 1 | 2 | 3 | 4 | 5
     const started = String(fd.get('started') || 'no') as 'yes' | 'partly' | 'no'
 
     // NEW: group/individual
-    const workType = String(fd.get('workType') || 'individual') as 'group' | 'individual'
+    const workType = String(fd.get('workType') || 'individual') as
+      | 'group'
+      | 'individual'
 
     const file = (fileRef.current?.files && fileRef.current.files[0]) || null
-    const specType = specMode ?? (file ? 'pdf' : specText.trim() ? 'text' : undefined)
+    const specType =
+      specMode ?? (file ? 'pdf' : specText.trim() ? 'text' : undefined)
 
     const a = {
       id: `${Date.now()}`,
       title,
       subject: subject || undefined,
-      dueDate: dueDate ? new Date(dueDate).toISOString() : new Date().toISOString(),
-      idealStartDate: idealStartDate ? new Date(idealStartDate).toISOString() : undefined,
-      comfortableDueDate: comfortableDueDate ? new Date(comfortableDueDate).toISOString() : undefined,
+      dueDate: dueDate
+        ? new Date(dueDate).toISOString()
+        : new Date().toISOString(),
+      idealStartDate: idealStartDate
+        ? new Date(idealStartDate).toISOString()
+        : undefined,
+      comfortableDueDate: comfortableDueDate
+        ? new Date(comfortableDueDate).toISOString()
+        : undefined,
       estimatedHours: 6,
       understanding,
       confidence,
@@ -89,14 +114,22 @@ export default function AssignmentsPage() {
             <button
               onClick={() => setTab('add')}
               type="button"
-              className={`nav-pill ${tab === 'add' ? 'bg-white font-bold text-slate-900 shadow-sm' : ''}`}
+              className={`nav-pill ${
+                tab === 'add'
+                  ? 'bg-white font-bold text-slate-900 shadow-sm'
+                  : ''
+              }`}
             >
               Add new assignment
             </button>
             <button
               onClick={() => setTab('view')}
               type="button"
-              className={`nav-pill ${tab === 'view' ? 'bg-white font-bold text-slate-900 shadow-sm' : ''}`}
+              className={`nav-pill ${
+                tab === 'view'
+                  ? 'bg-white font-bold text-slate-900 shadow-sm'
+                  : ''
+              }`}
             >
               View assignments
             </button>
@@ -106,7 +139,9 @@ export default function AssignmentsPage() {
             <form onSubmit={onAdd} className="space-y-6">
               {/* spec row */}
               <div className="flex flex-wrap items-center gap-4">
-                <p className="font-semibold text-slate-900">Enter your assignment specifications:</p>
+                <p className="font-semibold text-slate-900">
+                  Enter your assignment specifications:
+                </p>
                 <div className="flex items-center gap-3">
                   <label
                     onClick={() => setSpecMode('pdf')}
@@ -122,7 +157,8 @@ export default function AssignmentsPage() {
                       accept="application/pdf"
                       className="hidden"
                       onChange={(ev) => {
-                        const f = ev.currentTarget.files && ev.currentTarget.files[0]
+                        const f =
+                          ev.currentTarget.files && ev.currentTarget.files[0]
                         if (f) setFileName(f.name)
                         setSpecMode('pdf')
                       }}
@@ -142,14 +178,20 @@ export default function AssignmentsPage() {
                     Enter Text
                   </button>
 
-                  {fileName && <span className="ml-1 text-sm text-slate-700">{fileName}</span>}
+                  {fileName && (
+                    <span className="ml-1 text-sm text-slate-700">
+                      {fileName}
+                    </span>
+                  )}
                 </div>
               </div>
 
               {/* subject & date */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-800">Subject</label>
+                  <label className="block text-sm font-semibold text-slate-800">
+                    Subject
+                  </label>
                   <input
                     name="subject"
                     className="mt-2 w-full rounded-xl border border-[#CCD8E1]/70 bg-white/80 px-3 py-2 shadow-inner placeholder:text-slate-400"
@@ -157,7 +199,9 @@ export default function AssignmentsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-800">Due date</label>
+                  <label className="block text-sm font-semibold text-slate-800">
+                    Due date
+                  </label>
                   <input
                     name="dueDate"
                     type="date"
@@ -168,7 +212,9 @@ export default function AssignmentsPage() {
 
               {/* name */}
               <div>
-                <label className="block text-sm font-semibold text-slate-800">Assignment Name</label>
+                <label className="block text-sm font-semibold text-slate-800">
+                  Assignment Name
+                </label>
                 <input
                   name="title"
                   className="mt-2 w-full rounded-xl border border-[#CCD8E1]/70 bg-white/80 px-3 py-2 shadow-inner"
@@ -185,7 +231,13 @@ export default function AssignmentsPage() {
                     { label: 'Group', value: 'group' },
                   ].map((o) => (
                     <label key={o.value} className="inline-flex items-center">
-                      <input type="radio" name="workType" value={o.value} defaultChecked={o.value === 'individual'} className="peer hidden" />
+                      <input
+                        type="radio"
+                        name="workType"
+                        value={o.value}
+                        defaultChecked={o.value === 'individual'}
+                        className="peer hidden"
+                      />
                       <span className="inline-flex select-none items-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-[#CCD8E1]/70 peer-checked:bg-[#0F205A] peer-checked:text-white peer-checked:ring-[#0F205A]">
                         {o.label}
                       </span>
@@ -198,10 +250,21 @@ export default function AssignmentsPage() {
                 <label className="block text-sm font-semibold text-slate-800">
                   How well do you understand this assignment so far?
                 </label>
-                <input name="understanding" defaultValue={1} type="range" min={1} max={5} className="w-full" />
+                <input
+                  name="understanding"
+                  defaultValue={1}
+                  type="range"
+                  min={1}
+                  max={5}
+                  className="w-full"
+                />
                 <div className="flex justify-between text-xs text-slate-600">
-                  <span><span className="font-semibold">1</span> Not at all</span>
-                  <span><span className="font-semibold">5</span> Very well</span>
+                  <span>
+                    <span className="font-semibold">1</span> Not at all
+                  </span>
+                  <span>
+                    <span className="font-semibold">5</span> Very well
+                  </span>
                 </div>
               </div>
 
@@ -210,10 +273,21 @@ export default function AssignmentsPage() {
                 <label className="block text-sm font-semibold text-slate-800">
                   How confident are you in this topic area?
                 </label>
-                <input name="confidence" defaultValue={1} type="range" min={1} max={5} className="w-full" />
+                <input
+                  name="confidence"
+                  defaultValue={1}
+                  type="range"
+                  min={1}
+                  max={5}
+                  className="w-full"
+                />
                 <div className="flex justify-between text-xs text-slate-600">
-                  <span><span className="font-semibold">1</span> Not confident</span>
-                  <span><span className="font-semibold">5</span> Very confident</span>
+                  <span>
+                    <span className="font-semibold">1</span> Not confident
+                  </span>
+                  <span>
+                    <span className="font-semibold">5</span> Very confident
+                  </span>
                 </div>
               </div>
 
@@ -286,7 +360,9 @@ export default function AssignmentsPage() {
 
               {/* notes */}
               <div>
-                <label className="block text-sm font-semibold text-slate-800">Notes</label>
+                <label className="block text-sm font-semibold text-slate-800">
+                  Notes
+                </label>
                 <textarea
                   name="notes"
                   rows={2}
@@ -315,7 +391,9 @@ export default function AssignmentsPage() {
 
               <div className="space-y-4">
                 {assignments.length === 0 ? (
-                  <p className="text-center text-slate-600">No assignments yet. Add your first one.</p>
+                  <p className="text-center text-slate-600">
+                    No assignments yet. Add your first one.
+                  </p>
                 ) : (
                   assignments
                     .slice()
@@ -352,7 +430,9 @@ function AssignmentCard({ a }: { a: Assignment }) {
           <p className="text-sm text-slate-800">
             <span className="font-semibold">Due:</span> {dueStr}
           </p>
-          <h3 className="truncate text-lg font-semibold text-slate-900">{a.title}</h3>
+          <h3 className="truncate text-lg font-semibold text-slate-900">
+            {a.title}
+          </h3>
         </div>
       </div>
       <ProgressRing value={(a as any).progress ?? 0} />

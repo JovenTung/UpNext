@@ -3,7 +3,7 @@ export default function HowItWorksPage() {
     {
       n: 1,
       title: 'Add assignment',
-      desc: 'Upload or paste details; we detect due dates.',
+      desc: 'Upload or paste details',
     },
     {
       n: 2,
@@ -13,7 +13,7 @@ export default function HowItWorksPage() {
     {
       n: 3,
       title: 'Get your plan',
-      desc: 'Sessions appear on your calendar; drag to tweak.',
+      desc: 'Sessions appear on your calendar; adjust as needed.',
     },
   ]
 
