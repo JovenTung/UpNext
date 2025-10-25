@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useStore } from '@/lib/store/useStore'
 import type { Assignment } from '@/lib/types'
 import ProgressRing from '@/components/ProgressRing'
@@ -9,9 +10,13 @@ export default function AssignmentsPage() {
   const assignments = useStore((s) => s.assignments)
   const addAssignment = useStore((s) => s.addAssignment)
 
-  const [tab, setTab] = useState<'add' | 'view'>(
-    assignments.length ? 'view' : 'add'
-  )
+  const searchParams = useSearchParams()
+  const requestedTab = searchParams?.get('tab')
+
+  const [tab, setTab] = useState<'add' | 'view'>(() => {
+    if (requestedTab === 'add') return 'add'
+    return assignments.length ? 'view' : 'add'
+  })
 
   const [specMode, setSpecMode] = useState<'pdf' | 'text' | null>(null)
   const [specText, setSpecText] = useState('')

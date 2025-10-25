@@ -27,7 +27,11 @@ export default function NavBar() {
           aria-label="UpNext Home"
           className="flex h-12 w-12 items-center justify-center rounded-full border border-white/40 bg-white/70 shadow backdrop-blur-md hover:bg-white"
         >
-          <img src="/branding/logo.png" alt="UpNext Logo" className="h-10 w-10" />
+          <img
+            src="/branding/logo.png"
+            alt="UpNext Logo"
+            className="h-10 w-10"
+          />
         </Link>
 
         {/* Glass menu */}
@@ -52,7 +56,10 @@ export default function NavBar() {
               <Link href="/" className={linkClass('/')}>
                 Dashboard
               </Link>
-              <Link href="/assignments" className={linkClass('/assignments')}>
+              <Link
+                href="/assignments?tab=add"
+                className={linkClass('/assignments')}
+              >
                 Assignments
               </Link>
               <Link href="/exams" className={linkClass('/exams')}>

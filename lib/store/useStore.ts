@@ -39,7 +39,6 @@ const creator: StateCreator<State> = (set: any, get: any) => ({
   },
   updateEvent: (id: string, update: Partial<StudyEvent>) => {
     set({
-      events: get().events.map((e) => (e.id === id ? { ...e, ...update } : e)),
     });
   },
   clearAll: () =>
