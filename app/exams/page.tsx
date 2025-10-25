@@ -23,11 +23,9 @@ type Exam = {
 
 export default function ExamsPage() {
   // If your store has exams/addExam, use them; otherwise fall back to local state.
-  // @ts-ignore
-  const storeExams: Exam[] | undefined = useStore((s) => s.exams)
-  // @ts-ignore
+  const storeExams: Exam[] | undefined = useStore((s: any) => s.exams)
   const storeAddExam: ((e: Exam) => void) | undefined = useStore(
-    (s) => s.addExam
+    (s: any) => s.addExam
   )
 
   const [localExams, setLocalExams] = useState<Exam[]>([])
