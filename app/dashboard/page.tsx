@@ -701,19 +701,14 @@ function MonthGrid({
   const startCell = addDays(first, -first.getDay())
   const totalCells = 42 // 6 weeks
 
-  const days: Date[] = Array.from({ length: totalCells }, (_, i) =>
-    addDays(startCell, i)
-  )
+  const days: Date[] = Array.from({ length: totalCells }, (_, i) => addDays(startCell, i))
+  const today = new Date()
 
   const eventsByDay = useMemo(() => {
     const map = new Map<string, Task[]>()
     for (const t of tasks) {
       const s = new Date(t.start)
-      const key = new Date(
-        s.getFullYear(),
-        s.getMonth(),
-        s.getDate()
-      ).toISOString()
+      const key = new Date(s.getFullYear(), s.getMonth(), s.getDate()).toISOString()
       const arr = map.get(key) ?? []
       arr.push(t)
       map.set(key, arr)
@@ -724,21 +719,15 @@ function MonthGrid({
   return (
     <div className="grid grid-cols-7 gap-2">
       {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-        <div
-          key={d}
-          className="px-1 text-center text-[11px] font-semibold text-slate-600"
-        >
+        <div key={d} className="px-1 text-center text-[11px] font-semibold text-slate-600">
           {d}
         </div>
       ))}
 
       {days.map((d, idx) => {
         const isCurrentMonth = d.getMonth() === date.getMonth()
-        const key = new Date(
-          d.getFullYear(),
-          d.getMonth(),
-          d.getDate()
-        ).toISOString()
+        const isToday = sameDay(d, today)
+        const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString()
         const dayEvents = eventsByDay.get(key) ?? []
         const dueItems = dueMap.get(key) ?? []
 
@@ -749,11 +738,19 @@ function MonthGrid({
               isCurrentMonth ? '' : 'opacity-40'
             }`}
           >
-            {/* Date + Due pills */}
+            {/* Date number */}
             <div className="mb-1 flex items-center justify-between">
-              <div className="text-[11px] font-semibold text-slate-600">
+              <div
+                className={`text-[11px] font-semibold ${
+                  isToday
+                    ? 'text-black font-extrabold bg-white/70 rounded-full px-2 py-0.5 shadow-sm'
+                    : 'text-slate-600'
+                }`}
+              >
                 {d.getDate()}
               </div>
+
+              {/* Due pills */}
               <div className="flex flex-wrap items-center gap-1">
                 {dueItems.slice(0, 2).map((it) => (
                   <button
@@ -786,17 +783,13 @@ function MonthGrid({
                   onClick={() => onTaskClick(t)}
                   className="block w-full truncate rounded-md px-2 py-1 text-left text-[11px] text-white"
                   style={{ backgroundColor: t.color }}
-                  title={`${t.title} • ${fmtHM(new Date(t.start))}–${fmtHM(
-                    new Date(t.end)
-                  )}`}
+                  title={`${t.title} • ${fmtHM(new Date(t.start))}–${fmtHM(new Date(t.end))}`}
                 >
                   {t.title}
                 </button>
               ))}
               {dayEvents.length > 3 && (
-                <div className="text-[10px] text-slate-500">
-                  +{dayEvents.length - 3} more
-                </div>
+                <div className="text-[10px] text-slate-500">+{dayEvents.length - 3} more</div>
               )}
             </div>
           </div>
@@ -805,6 +798,7 @@ function MonthGrid({
     </div>
   )
 }
+
 
 // ---------- Week + Day views ----------
 function WeekView({
@@ -820,30 +814,42 @@ function WeekView({
   dueMap: Map<string, AssignmentSummary[]>
   onDueClick: (items: AssignmentSummary[]) => void
 }) {
+  const today = new Date()
   const day0 = addDays(startOfDay(date), -date.getDay())
   const days = Array.from({ length: 7 }, (_, i) => addDays(day0, i))
 
   return (
     <div className="grid grid-cols-7 gap-2">
-      {days.map((d, i) => (
-        <div key={i} className="rounded-xl bg-[#E0E0E0A3] p-2">
-          <div className="mb-1 text-[11px] font-semibold text-slate-600">
-            {WEEKDAY_SHORT[d.getDay()]} {d.getDate()}
+      {days.map((d, i) => {
+        const isToday = sameDay(d, today)
+        return (
+          <div key={i} className="rounded-xl bg-[#E0E0E0A3] p-2">
+            <div
+              className={`mb-1 text-[11px] font-semibold ${
+                isToday
+                  ? 'text-black font-extrabold bg-white/70 rounded-full px-2 py-0.5 shadow-sm inline-block'
+                  : 'text-slate-600'
+              }`}
+            >
+              {WEEKDAY_SHORT[d.getDay()]} {d.getDate()}
+            </div>
+
+            <DayColumn
+              date={d}
+              tasks={tasks.filter((t) => sameDay(new Date(t.start), d))}
+              onTaskClick={onTaskClick}
+              dueMap={dueMap}
+              onDueClick={onDueClick}
+              showTimesInBlock={false}
+              compactTitles
+            />
           </div>
-          <DayColumn
-            date={d}
-            tasks={tasks.filter((t) => sameDay(new Date(t.start), d))}
-            onTaskClick={onTaskClick}
-            dueMap={dueMap}
-            onDueClick={onDueClick}
-            showTimesInBlock={false}
-            compactTitles
-          />
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
+
 
 function DayView({
   date,
@@ -1058,6 +1064,7 @@ function DayColumn({
 }
 
 // ---------- Task modal (add/edit) ----------
+// ---------- Task modal (add/edit) ----------
 function TaskModal({
   initial,
   onClose,
@@ -1071,14 +1078,13 @@ function TaskModal({
   onDelete: (id: string) => void
   assignments: AssignmentSummary[] // ← NEW
 }) {
-
   const isEditing = Boolean(initial)
 
   const [title, setTitle] = useState(initial?.title ?? '')
   const [type, setType] = useState<TaskType>(initial?.type ?? 'focus')
-  const [subject, setSubject] = useState<SubjectKey | undefined>(
-    initial?.subject
-  )
+  const [subject, setSubject] = useState<SubjectKey | undefined>(initial?.subject)
+  const [assignmentId, setAssignmentId] = useState<string | undefined>(initial?.assignmentId)
+
   const [start, setStart] = useState<string>(
     initial ? initial.start.slice(0, 16) : new Date().toISOString().slice(0, 16)
   )
@@ -1087,17 +1093,15 @@ function TaskModal({
       ? initial.end.slice(0, 16)
       : new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16)
   )
-  const [repeatKind, setRepeatKind] = useState<RepeatRule['kind']>(
-    initial?.repeat.kind ?? 'none'
-  )
+
+  const [repeatKind, setRepeatKind] = useState<RepeatRule['kind']>(initial?.repeat.kind ?? 'none')
   const [repeatInterval, setRepeatInterval] = useState<number>(1)
   const [byWeekday, setByWeekday] = useState<number[]>([])
   const [isDone, setIsDone] = useState<boolean>(initial?.isDone ?? false)
+
   // Repeat end controls
   const initialEndAt = (initial?.repeat as any)?.endAt as string | undefined
-  const [repeatEndMode, setRepeatEndMode] = useState<'never' | 'on'>(
-    initialEndAt ? 'on' : 'never'
-  )
+  const [repeatEndMode, setRepeatEndMode] = useState<'never' | 'on'>(initialEndAt ? 'on' : 'never')
   const [repeatEndDate, setRepeatEndDate] = useState<string>(
     initialEndAt ? new Date(initialEndAt).toISOString().slice(0, 10) : ''
   )
@@ -1111,234 +1115,245 @@ function TaskModal({
 
   const buildRepeat = (): RepeatRule => {
     const endAt =
-      repeatEndMode === 'on' && repeatEndDate
-        ? new Date(repeatEndDate).toISOString()
-        : undefined
+      repeatEndMode === 'on' && repeatEndDate ? new Date(repeatEndDate).toISOString() : undefined
     if (repeatKind === 'none') return { kind: 'none' }
-    if (repeatKind === 'daily')
-      return { kind: 'daily', interval: repeatInterval, endAt }
-    if (repeatKind === 'weekly')
-      return { kind: 'weekly', interval: repeatInterval, byWeekday, endAt }
+    if (repeatKind === 'daily') return { kind: 'daily', interval: repeatInterval, endAt }
+    if (repeatKind === 'weekly') return { kind: 'weekly', interval: repeatInterval, byWeekday, endAt }
     return { kind: 'monthly', interval: repeatInterval, endAt }
   }
 
   const save = () => {
-  const id = initial?.id ?? `t_${crypto.randomUUID()}`
-  onSave({
-    id,
-    title: title || 'Untitled',
-    type,
-    subject: type === 'blocked' || type === 'rest' ? undefined : subject,
-    color: effectiveColor,
-    start: new Date(start).toISOString(),
-    end: new Date(end).toISOString(),
-    repeat: buildRepeat(),
-    isDone: type === 'focus' ? isDone : undefined,
-    isAiBreak: type === 'rest' ? true : undefined,
-    assignmentId: type === 'focus' ? assignmentId : undefined, // ← NEW
-  })
-}
-
-
-  const [assignmentId, setAssignmentId] = useState<string | undefined>(initial?.assignmentId)
-
+    const id = initial?.id ?? `t_${crypto.randomUUID()}`
+    onSave({
+      id,
+      title: title || 'Untitled',
+      type,
+      subject: type === 'blocked' || type === 'rest' ? undefined : subject,
+      color: effectiveColor,
+      start: new Date(start).toISOString(),
+      end: new Date(end).toISOString(),
+      repeat: buildRepeat(),
+      isDone: type === 'focus' ? isDone : undefined,
+      isAiBreak: type === 'rest' ? true : undefined,
+      assignmentId: type === 'focus' ? assignmentId : undefined,
+    })
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 md:items-center">
       <div className="w-full max-w-xl rounded-2xl border bg-white p-4 shadow-xl">
+        {/* Header */}
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-lg font-extrabold">
-            {isEditing ? 'Edit task' : 'Add task'}
-          </h3>
-          <button
-            className="rounded-full p-2 hover:bg-slate-100"
-            onClick={onClose}
-            aria-label="Close"
-          >
+          <h3 className="text-lg font-extrabold">{isEditing ? 'Edit task' : 'Add task'}</h3>
+          <button className="rounded-full p-2 hover:bg-slate-100" onClick={onClose} aria-label="Close">
             ✕
           </button>
         </div>
 
+        {/* Form grid */}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-  {/* Title */}
-  <label className="text-xs">
-    <div className="mb-1 font-semibold">Title</div>
-    <input
-      value={title}
-      onChange={(e) => setTitle(e.target.value)}
-      className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
-      placeholder="e.g., Study: Algorithms"
-    />
-  </label>
+          {/* Title */}
+          <label className="text-xs">
+            <div className="mb-1 font-semibold">Title</div>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
+              placeholder="e.g., Study: Algorithms"
+            />
+          </label>
 
-  {/* Type */}
-  <label className="text-xs">
-    <div className="mb-1 font-semibold">Type</div>
-    <select
-      value={type}
-      onChange={(e) => setType(e.target.value as TaskType)}
-      className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
-    >
-      <option value="focus">Study/Coursework</option>
-      <option value="blocked">Other Commitments</option>
-      <option value="rest">Rest</option>
-    </select>
-  </label>
-
-  {/* Subject + Assignment (same row). Only for focus tasks */}
-  {type !== 'blocked' && type !== 'rest' && (
-    <>
-      {/* Subject */}
-      <label className="text-xs">
-        <div className="mb-1 font-semibold">Subject</div>
-        <select
-          value={subject ?? ''} // allow none
-          onChange={(e) => {
-            const v = e.target.value
-            setSubject(v ? (v as SubjectKey) : undefined)
-          }}
-          className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
-        >
-          <option value="">(None)</option>
-          {Object.entries(SUBJECTS).map(([k, v]) => (
-            <option key={k} value={k}>
-              {v.label}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      {/* Assignment */}
-      <label className="text-xs">
-        <div className="mb-1 font-semibold">Assignment</div>
-        <select
-          value={assignmentId ?? ''} // allow none
-          onChange={(e) => setAssignmentId(e.target.value || undefined)}
-          className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
-        >
-          <option value="">(None)</option>
-          {assignments.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.title}
-            </option>
-          ))}
-        </select>
-      </label>
-    </>
-  )}
-
-  {/* Start */}
-  <label className="text-xs">
-    <div className="mb-1 font-semibold">Start</div>
-    <input
-      type="datetime-local"
-      value={start}
-      onChange={(e) => setStart(e.target.value)}
-      className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
-    />
-  </label>
-
-  {/* End */}
-  <label className="text-xs">
-    <div className="mb-1 font-semibold">End</div>
-    <input
-      type="datetime-local"
-      value={end}
-      onChange={(e) => setEnd(e.target.value)}
-      className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
-    />
-  </label>
-
-  {/* Repeat box */}
-  <div className="col-span-full mt-1 rounded-xl border bg-slate-50 p-3">
-    <div className="mb-2 text-xs font-semibold">Repeat</div>
-    <div className="flex flex-wrap items-center gap-2 text-xs">
-      {(['none', 'daily', 'weekly', 'monthly'] as RepeatRule['kind'][]).map((k) => (
-        <button
-          key={k}
-          className={`rounded-full px-3 py-1 ${repeatKind === k ? 'bg-black text-white' : 'bg-white'}`}
-          onClick={() => setRepeatKind(k)}
-        >
-          {k}
-        </button>
-      ))}
-
-      {repeatKind !== 'none' && (
-        <>
-          <span className="text-slate-500">every</span>
-          <input
-            type="number"
-            min={1}
-            value={repeatInterval}
-            onChange={(e) => setRepeatInterval(parseInt(e.target.value) || 1)}
-            className="w-16 rounded-lg border px-2 py-1"
-          />
-          <span className="text-slate-500">
-            {repeatKind === 'daily' ? 'day(s)' : repeatKind === 'weekly' ? 'week(s)' : 'month(s)'}
-          </span>
-        </>
-      )}
-
-      {repeatKind === 'weekly' && (
-        <div className="ml-2 flex items-center gap-1">
-          {[0, 1, 2, 3, 4, 5, 6].map((d) => (
-            <button
-              key={d}
-              onClick={() =>
-                setByWeekday((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]))
-              }
-              className={`rounded-md border px-2 py-1 ${byWeekday.includes(d) ? 'bg-black text-white' : 'bg-white'}`}
+          {/* Type */}
+          <label className="text-xs">
+            <div className="mb-1 font-semibold">Type</div>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as TaskType)}
+              className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
             >
-              {'SMTWTFS'[d]}
+              <option value="focus">Study/Coursework</option>
+              <option value="blocked">Other Commitments</option>
+              <option value="rest">Rest</option>
+            </select>
+          </label>
+
+          {/* Subject + Assignment (same row for focus tasks) */}
+          {type !== 'blocked' && type !== 'rest' && (
+            <>
+              {/* Subject */}
+              <label className="text-xs">
+                <div className="mb-1 font-semibold">Subject</div>
+                <select
+                  value={subject ?? ''} // allow none
+                  onChange={(e) => {
+                    const v = e.target.value
+                    setSubject(v ? (v as SubjectKey) : undefined)
+                  }}
+                  className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
+                >
+                  <option value="">(None)</option>
+                  {Object.entries(SUBJECTS).map(([k, v]) => (
+                    <option key={k} value={k}>
+                      {v.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              {/* Assignment */}
+              <label className="text-xs">
+                <div className="mb-1 font-semibold">Assignment</div>
+                <select
+                  value={assignmentId ?? ''} // allow none
+                  onChange={(e) => setAssignmentId(e.target.value || undefined)}
+                  className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
+                >
+                  <option value="">(None)</option>
+                  {assignments.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
+          )}
+
+          {/* Start */}
+          <label className="text-xs">
+            <div className="mb-1 font-semibold">Start</div>
+            <input
+              type="datetime-local"
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+              className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
+            />
+          </label>
+
+          {/* End */}
+          <label className="text-xs">
+            <div className="mb-1 font-semibold">End</div>
+            <input
+              type="datetime-local"
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+              className="w-full rounded-lg border bg-white px-3 py-2 text-sm"
+            />
+          </label>
+
+          {/* Repeat box */}
+          <div className="col-span-full mt-1 rounded-xl border bg-slate-50 p-3">
+            <div className="mb-2 text-xs font-semibold">Repeat</div>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              {(['none', 'daily', 'weekly', 'monthly'] as RepeatRule['kind'][]).map((k) => (
+                <button
+                  key={k}
+                  className={`rounded-full px-3 py-1 ${repeatKind === k ? 'bg-black text-white' : 'bg-white'}`}
+                  onClick={() => setRepeatKind(k)}
+                >
+                  {k}
+                </button>
+              ))}
+
+              {repeatKind !== 'none' && (
+                <>
+                  <span className="text-slate-500">every</span>
+                  <input
+                    type="number"
+                    min={1}
+                    value={repeatInterval}
+                    onChange={(e) => setRepeatInterval(parseInt(e.target.value) || 1)}
+                    className="w-16 rounded-lg border px-2 py-1"
+                  />
+                  <span className="text-slate-500">
+                    {repeatKind === 'daily' ? 'day(s)' : repeatKind === 'weekly' ? 'week(s)' : 'month(s)'}
+                  </span>
+                </>
+              )}
+
+              {repeatKind === 'weekly' && (
+                <div className="ml-2 flex items-center gap-1">
+                  {[0, 1, 2, 3, 4, 5, 6].map((d) => (
+                    <button
+                      key={d}
+                      onClick={() =>
+                        setByWeekday((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]))
+                      }
+                      className={`rounded-md border px-2 py-1 ${byWeekday.includes(d) ? 'bg-black text-white' : 'bg-white'}`}
+                    >
+                      {'SMTWTFS'[d]}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Ends controls */}
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+              <span className="font-semibold text-slate-600">Ends</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className={`rounded-full px-3 py-1 ${repeatEndMode === 'never' ? 'bg-black text-white' : 'bg-white'}`}
+                  onClick={() => setRepeatEndMode('never')}
+                >
+                  Never
+                </button>
+                <button
+                  type="button"
+                  className={`rounded-full px-3 py-1 ${repeatEndMode === 'on' ? 'bg-black text-white' : 'bg-white'}`}
+                  onClick={() => setRepeatEndMode('on')}
+                >
+                  On
+                </button>
+                {repeatEndMode === 'on' && (
+                  <input
+                    type="date"
+                    value={repeatEndDate}
+                    onChange={(e) => setRepeatEndDate(e.target.value)}
+                    className="rounded-lg border px-2 py-1"
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Mark done (only for focus) */}
+          {type === 'focus' && (
+            <label className="col-span-full mt-1 flex items-center gap-2 text-xs">
+              <input
+                type="checkbox"
+                checked={isDone}
+                onChange={(e) => setIsDone(e.target.checked)}
+              />
+              <span>Mark as done when completed</span>
+            </label>
+          )}
+        </div>
+
+        {/* Footer (Delete / Cancel / Save) */}
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-slate-500">Preview color</span>
+            <span className="inline-block h-4 w-4 rounded" style={{ backgroundColor: effectiveColor }} />
+          </div>
+
+          <div className="flex gap-2">
+            {isEditing && (
+              <button
+                className="rounded-lg border px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                onClick={() => initial && onDelete(initial.id)}
+              >
+                Delete
+              </button>
+            )}
+            <button className="rounded-lg bg-black px-3 py-2 text-sm text-white" onClick={save}>
+              Save
             </button>
-          ))}
-        </div>
-      )}
-    </div>
-
-    {/* Ends controls */}
-    <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
-      <span className="font-semibold text-slate-600">Ends</span>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          className={`rounded-full px-3 py-1 ${repeatEndMode === 'never' ? 'bg-black text-white' : 'bg-white'}`}
-          onClick={() => setRepeatEndMode('never')}
-        >
-          Never
-        </button>
-        <button
-          type="button"
-          className={`rounded-full px-3 py-1 ${repeatEndMode === 'on' ? 'bg-black text-white' : 'bg-white'}`}
-          onClick={() => setRepeatEndMode('on')}
-        >
-          On
-        </button>
-        {repeatEndMode === 'on' && (
-          <input
-            type="date"
-            value={repeatEndDate}
-            onChange={(e) => setRepeatEndDate(e.target.value)}
-            className="rounded-lg border px-2 py-1"
-          />
-        )}
-      </div>
-    </div>
-  </div>
-
-  {/* Mark done (only for focus) */}
-  {type === 'focus' && (
-    <label className="col-span-full mt-1 flex items-center gap-2 text-xs">
-      <input
-        type="checkbox"
-        checked={isDone}
-        onChange={(e) => setIsDone(e.target.checked)}
-      />
-      <span>Mark as done when completed</span>
-    </label>
-  )}
-</div>
+          </div>
         </div>
       </div>
+    </div>
   )
 }
+
