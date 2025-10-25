@@ -44,6 +44,59 @@ body {
     ),
     linear-gradient(180deg, #7ec7f4 0%, #aee6ff 40%, #b6e9ff 60%, #9cd7ff 100%);
 }
+
+/* Animated landing gradient (white <-> blue, subtle wave) */
+.landing-animated {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(120deg, #73b5f7, #ba87f4, #7fb1f2, #ceaff1);
+  background-size: 200% 200%;
+  animation: gradientShift 8s ease-in-out infinite;
+}
+.landing-animated::before {
+  content: '';
+  position: absolute;
+  inset: -20% -10% -10% -10%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+      60% 50% at 10% 90%,
+      rgba(96, 165, 250, 0.18),
+      rgba(96, 165, 250, 0) 60%
+    ),
+    radial-gradient(
+      55% 50% at 90% 20%,
+      rgba(59, 130, 246, 0.14),
+      rgba(59, 130, 246, 0) 60%
+    ),
+    radial-gradient(
+      70% 60% at 50% 0%,
+      rgba(147, 197, 253, 0.16),
+      rgba(147, 197, 253, 0) 60%
+    );
+  filter: blur(18px);
+  transform-origin: 50% 50%;
+  animation: swirl 10s linear infinite;
+}
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+@keyframes swirl {
+  0% {
+    transform: rotate(0deg) scale(1.05);
+  }
+  100% {
+    transform: rotate(360deg) scale(1.05);
+  }
+}
 /* Floating animation */
 @keyframes floaty {
   0% {

@@ -15,6 +15,7 @@
     "chrono-node": "^2.7.6",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+    "framer-motion": "^12.23.24",
     "next": "^14.2.0",
     "react": "^18.3.1",
     "react-big-calendar": "^1.11.3",

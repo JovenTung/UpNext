@@ -30,21 +30,21 @@ export default function HomePage() {
 
   return (
     <section
-      className="landing-bg min-h-screen w-full"
+      className="landing-animated h-[100dvh] w-full overflow-hidden overscroll-none"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 py-20 text-center">
-        <h1 className="text-3xl font-extrabold md:text-5xl">
-          An Assignment Planner That Actually{' '}
-          <span className="text-rose-500">Gets</span> You
+      <div className="mx-auto flex h-full max-w-5xl flex-col items-center justify-center gap-6 text-center">
+        <h1 className="whitespace-nowrap text-3xl font-extrabold md:text-5xl">
+          An Assignment Planner That Actually <span className="text-blue-600">Gets</span> You
         </h1>
         <p className="max-w-2xl text-slate-700">
           Upload your assignments, tell us how you work, and get a plan that
           adapts to your time, focus, and stress.
         </p>
+        <br/>
 
-        <div className="relative mt-10 grid w-full grid-cols-1 items-center gap-8 md:grid-cols-3">
+        <div className="relative grid w-full grid-cols-1 items-center gap-8 md:grid-cols-3">
           {/* Left floating icons */}
           <div className="order-2 flex flex-col items-center gap-8 md:order-1">
             <IconCard
@@ -64,13 +64,14 @@ export default function HomePage() {
           {/* Center illustration */}
           <div className="order-1 mx-auto md:order-2">
             <Image
-              src="/landing/hero-3d.png"
-              alt="UpNext study planner illustration"
-              width={560}
+              src="/branding/logo.png"
+              alt="UpNext logo"
+              width={420}
               height={420}
               priority
               className="animate-float-slow"
             />
+            <h1 className="text-3xl font-extrabold md:text-5xl">UpNext</h1>
           </div>
 
           {/* Right floating icons */}
@@ -151,13 +152,13 @@ function IconCard({
   return (
     <div className="flex flex-col items-center gap-2">
       <div
-        className={`flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-white shadow ${
+        className={`flex h-20 w-20 items-center justify-center overflow-hidden ${
           className ?? ''
         }`}
       >
-        <Image src={src} alt={alt} width={64} height={64} />
+        <Image src={src} alt={alt} width={80} height={80} />
       </div>
-      <div className="text-xs text-slate-600">{label}</div>
+      <div className="text-s text-slate-600">{label}</div>
     </div>
   )
 }

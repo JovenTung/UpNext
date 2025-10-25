@@ -14,7 +14,9 @@ export default function NavBar() {
   }
 
   const linkClass = (href: string) =>
-    `nav-pill ${isActive(href) ? 'font-bold text-slate-900' : ''}`
+    `nav-pill ${
+      isActive(href) ? 'bg-white font-bold text-slate-900 shadow-sm' : ''
+    }`
 
   return (
     <div className="fixed inset-x-0 top-4 z-50 flex justify-center px-4">

@@ -18,7 +18,7 @@ export default function HowItWorksPage() {
   ]
 
   return (
-    <section className="landing-bg min-h-[90vh] w-full">
+    <section className="landing-animated min-h-screen w-full">
       <div className="mx-auto max-w-6xl py-16">
         <h1 className="mb-10 text-center text-3xl font-extrabold md:text-5xl">
           How It Works
