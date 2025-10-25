@@ -36,9 +36,6 @@ export default function SignInPage() {
           <h1 className="text-2xl font-semibold text-slate-800">
             Welcome to <span className="text-indigo-600">UpNext</span>
           </h1>
-          <p className="text-sm text-slate-600">
-            This is a demo sign-in. Click continue to proceed.
-          </p>
         </div>
         {/* input fields */}
         <div className="mt-8 space-y-4">

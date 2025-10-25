@@ -62,31 +62,38 @@ export default function HomePage() {
             />
           </div>
 
-          {/* Center illustration */}
+            {/* Center illustration */}
           <div className="order-1 mx-auto md:order-2">
             <div className="relative mx-auto flex w-full max-w-full flex-col items-center">
               {/* smaller glass ring (fixed size) */}
               <div className="relative w-[300px] h-[300px] rounded-full border border-white/20 bg-white/8 p-1 shadow-xl backdrop-blur-lg supports-[backdrop-filter]:bg-white/8 overflow-visible align-middle justify-content-center">
-                {/* image positioned absolutely so it can be larger than the ring */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none align-middle justify-items-center">
-                  <div className="w-[250px] h-[250px] -translate-y--1 z-20 align-middle justify-items-center">
-                    <Image
-                      src="/branding/logo.png"
-                      alt="UpNext logo"
-                      width={420}
-                      height={420}
-                      priority
-                      className="h-full w-full rounded-full object-cover"
-                    />
-                  </div>
+              {/* gloss overlay clipped to the ring */}
+              <div className="absolute inset-0 rounded-full pointer-events-none overflow-hidden">
+                {/* soft diagonal sheen */}
+                <div className="absolute -top-10 -left-10 w-64 h-40 -rotate-20 blur-xl opacity-100 mix-blend-screen bg-gradient-to-br from-white/80 via-white/30 to-transparent" />
+                {/* subtle top-right specular highlight */}
+                <div className="absolute top-6 right-6 w-28 h-10 rounded-full bg-gradient-to-r from-white/40 to-transparent opacity-40 blur-sm" />
+              </div>
+
+              {/* image positioned absolutely so it can be larger than the ring */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none align-middle justify-items-center">
+                <div className="w-[250px] h-[250px] -translate-y--1 z-20 align-middle justify-items-center">
+                <Image
+                  src="/branding/logo.png"
+                  alt="UpNext logo"
+                  width={420}
+                  height={420}
+                  priority
+                  className="h-full w-full rounded-full object-cover"
+                />
                 </div>
+              </div>
 
                 {/* thin ring overlay (behind the image) */}
                 <div className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-black/5 z-10" />
               </div>
             </div>
 
-            {/* Title moved outside the ring container so you can position it independently */}
             <h1 className="mt-4 text-3xl font-extrabold md:text-5xl">UpNext</h1>
           </div>
 
