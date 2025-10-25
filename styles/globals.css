@@ -21,3 +21,47 @@ body {
 .container {
   @apply mx-auto max-w-5xl px-4;
 }
+
+/* Glass nav pill links */
+.nav-pill {
+  @apply rounded-full px-3 py-1.5 text-sm text-slate-800 hover:bg-white/70 hover:shadow-sm transition;
+}
+
+/* Horizontal landing scroll helpers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+/* Landing background (soft blue gradient with glow) */
+.landing-bg {
+  background: radial-gradient(
+      closest-corner at 25% 75%,
+      rgba(255, 255, 255, 0.9),
+      rgba(255, 255, 255, 0) 55%
+    ),
+    linear-gradient(180deg, #7ec7f4 0%, #aee6ff 40%, #b6e9ff 60%, #9cd7ff 100%);
+}
+/* Floating animation */
+@keyframes floaty {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+.animate-float {
+  animation: floaty 4.5s ease-in-out infinite;
+}
+.animate-float-slow {
+  animation: floaty 6.5s ease-in-out infinite;
+}
+.animate-float-delay {
+  animation: floaty 5.5s 0.8s ease-in-out infinite;
+}
