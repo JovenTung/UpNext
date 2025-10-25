@@ -23,14 +23,14 @@ export default function DashboardPage() {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
       <div className="lg:col-span-2">
-        <h2 className="mb-2 text-xl font-semibold">Your plan</h2>
+        <h2 className="mb-2 text-xl font-semibold">Your splan</h2>
         <Calendar events={events} onMove={onMove} />
       </div>
       <div>
         <h2 className="mb-2 text-xl font-semibold">Today</h2>
         <ul className="space-y-2">
           {todays.length === 0 && (
-            <li className="text-gray-500">No sessions planned today.</li>
+            <li className="text-gray-500">No sessions plssanned today.</li>
           )}
           {todays.map((e) => (
             <li
