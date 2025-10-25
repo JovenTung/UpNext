@@ -27,7 +27,7 @@ export default function NavBar() {
           aria-label="UpNext Home"
           className="flex h-12 w-12 items-center justify-center rounded-full border border-white/40 bg-white/70 shadow backdrop-blur-md hover:bg-white"
         >
-          <img src="/branding/logo.png" alt="UpNext Logo" className="h-13 w-13" />
+          <img src="/branding/logo.png" alt="UpNext Logo" className="h-10 w-10" />
         </Link>
 
         {/* Glass menu */}

@@ -64,22 +64,30 @@ export default function HomePage() {
 
           {/* Center illustration */}
           <div className="order-1 mx-auto md:order-2">
-            <div className="relative mx-auto flex w-[300px] max-w-full flex-col items-center">
-              <div className="relative w-full aspect-square overflow-hidden rounded-full border border-white/20 bg-white/8 p-1 shadow-xl backdrop-blur-lg supports-[backdrop-filter]:bg-white/8">
-                <Image
-                  src="/branding/logo.png"
-                  alt="UpNext logo"
-                  width={320}
-                  height={320}
-                  priority
-                  className="animate-float-slow mx-auto h-full w-full scale-225 rounded-full object-contain"
-                />
-                <div className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-black/5" />
+            <div className="relative mx-auto flex w-full max-w-full flex-col items-center">
+              {/* smaller glass ring (fixed size) */}
+              <div className="relative w-[300px] h-[300px] rounded-full border border-white/20 bg-white/8 p-1 shadow-xl backdrop-blur-lg supports-[backdrop-filter]:bg-white/8 overflow-visible align-middle justify-content-center">
+                {/* image positioned absolutely so it can be larger than the ring */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none align-middle justify-items-center">
+                  <div className="w-[250px] h-[250px] -translate-y--1 z-20 align-middle justify-items-center">
+                    <Image
+                      src="/branding/logo.png"
+                      alt="UpNext logo"
+                      width={420}
+                      height={420}
+                      priority
+                      className="h-full w-full rounded-full object-cover"
+                    />
+                  </div>
+                </div>
+
+                {/* thin ring overlay (behind the image) */}
+                <div className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-black/5 z-10" />
               </div>
-              <h1 className="m-4 text-3xl font-extrabold md:text-5xl">
-                UpNext
-              </h1>
             </div>
+
+            {/* Title moved outside the ring container so you can position it independently */}
+            <h1 className="mt-4 text-3xl font-extrabold md:text-5xl">UpNext</h1>
           </div>
 
           {/* Right floating icons */}
