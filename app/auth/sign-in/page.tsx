@@ -11,7 +11,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
 
   const onSignIn = () => {
-    setUser({ id: "demo", name: email || "Demo User" });
+    setUser({ id: "demo", name: email || "User" });
     router.push("/onboarding");
   };
 

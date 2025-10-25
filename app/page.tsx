@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { useStore } from '@/lib/store/useStore'
 
 export default function HomePage() {
@@ -24,9 +24,12 @@ export default function HomePage() {
     touchEndX.current = null
   }
 
-  if (user) {
-    return <LoggedInHome />
-  }
+  useEffect(() => {
+    // When a user is present, send them to the dashboard page
+    if (user) router.replace('/dashboard')
+  }, [user, router])
+
+  if (user) return null
 
   return (
     <section
@@ -62,32 +65,32 @@ export default function HomePage() {
             />
           </div>
 
-            {/* Center illustration */}
+          {/* Center illustration */}
           <div className="order-1 mx-auto md:order-2">
             <div className="relative mx-auto flex w-full max-w-full flex-col items-center">
               {/* smaller glass ring (fixed size) */}
               <div className="relative w-[300px] h-[300px] rounded-full border border-white/20 bg-white/8 p-1 shadow-xl backdrop-blur-lg supports-[backdrop-filter]:bg-white/8 overflow-visible align-middle justify-content-center">
-              {/* gloss overlay clipped to the ring */}
-              <div className="absolute inset-0 rounded-full pointer-events-none overflow-hidden">
-                {/* soft diagonal sheen */}
-                <div className="absolute -top-10 -left-10 w-64 h-40 -rotate-20 blur-xl opacity-100 mix-blend-screen bg-gradient-to-br from-white/80 via-white/30 to-transparent" />
-                {/* subtle top-right specular highlight */}
-                <div className="absolute top-6 right-6 w-28 h-10 rounded-full bg-gradient-to-r from-white/40 to-transparent opacity-40 blur-sm" />
-              </div>
-
-              {/* image positioned absolutely so it can be larger than the ring */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none align-middle justify-items-center">
-                <div className="w-[250px] h-[250px] -translate-y--1 z-20 align-middle justify-items-center">
-                <Image
-                  src="/branding/logo.png"
-                  alt="UpNext logo"
-                  width={420}
-                  height={420}
-                  priority
-                  className="h-full w-full rounded-full object-cover"
-                />
+                {/* gloss overlay clipped to the ring */}
+                <div className="absolute inset-0 rounded-full pointer-events-none overflow-hidden">
+                  {/* soft diagonal sheen */}
+                  <div className="absolute -top-10 -left-10 w-64 h-40 -rotate-20 blur-xl opacity-100 mix-blend-screen bg-gradient-to-br from-white/80 via-white/30 to-transparent" />
+                  {/* subtle top-right specular highlight */}
+                  <div className="absolute top-6 right-6 w-28 h-10 rounded-full bg-gradient-to-r from-white/40 to-transparent opacity-40 blur-sm" />
                 </div>
-              </div>
+
+                {/* image positioned absolutely so it can be larger than the ring */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none align-middle justify-items-center">
+                  <div className="w-[250px] h-[250px] -translate-y--1 z-20 align-middle justify-items-center">
+                    <Image
+                      src="/branding/logo.png"
+                      alt="UpNext logo"
+                      width={420}
+                      height={420}
+                      priority
+                      className="h-full w-full rounded-full object-cover"
+                    />
+                  </div>
+                </div>
 
                 {/* thin ring overlay (behind the image) */}
                 <div className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-black/5 z-10" />
@@ -111,49 +114,6 @@ export default function HomePage() {
               src="/benefits/focus.png"
               alt="Focus optimization"
             />
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function LoggedInHome() {
-  const name = useStore((s) => s.user?.name ?? 'Student')
-  return (
-    <section className="loggedIn-bg min-h-[100vh] w-full">
-      <div className="mx-auto max-w-5xl px-4 py-24">
-        <h1 className="text-2xl md:text-3xl">
-          Good morning <span className="font-extrabold">{name}</span>, here’s
-          your focus for today.
-        </h1>
-
-        <div className="mt-10 rounded-2xl border bg-white/70 p-10 shadow-sm">
-          <h2 className="text-3xl font-extrabold text-center">
-            Upcoming assignment
-          </h2>
-        </div>
-
-        <div className="mt-8 rounded-2xl border bg-white/70 p-4 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="rounded-full bg-black px-3 py-1 text-xs font-semibold text-white/90">
-                Monthly
-              </span>
-              <span className="px-3 py-1 text-xs text-slate-600">Weekly</span>
-              <span className="px-3 py-1 text-xs text-slate-600">Daily</span>
-            </div>
-            <button
-              aria-label="Add"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white"
-            >
-              +
-            </button>
-          </div>
-          <div className="h-[360px] rounded-xl bg-slate-200/70">
-            <div className="flex h-full items-center justify-center text-3xl font-extrabold">
-              Calendar
-            </div>
           </div>
         </div>
       </div>

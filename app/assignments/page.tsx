@@ -16,6 +16,7 @@ export default function AssignmentsPage() {
   const [specMode, setSpecMode] = useState<'pdf' | 'text' | null>(null)
   const [specText, setSpecText] = useState('')
   const fileRef = useRef<HTMLInputElement | null>(null)
+  const [fileName, setFileName] = useState<string | null>(null)
 
   // simple progress heuristic combining started + understanding + confidence
   const computeProgress = (a: Partial<Assignment>) => {
@@ -42,7 +43,6 @@ export default function AssignmentsPage() {
       | 5
     const confidence = Number(fd.get('confidence') || 1) as 1 | 2 | 3 | 4 | 5
     const started = String(fd.get('started') || 'no') as 'yes' | 'partly' | 'no'
-    const course = String(fd.get('course') || '')
     const file = (fileRef.current?.files && fileRef.current.files[0]) || null
 
     const specType =
@@ -51,7 +51,6 @@ export default function AssignmentsPage() {
     const a: Assignment = {
       id: `${Date.now()}`,
       title,
-      course: course || undefined,
       subject: subject || undefined,
       dueDate: dueDate
         ? new Date(dueDate).toISOString()
@@ -62,7 +61,7 @@ export default function AssignmentsPage() {
       comfortableDueDate: comfortableDueDate
         ? new Date(comfortableDueDate).toISOString()
         : undefined,
-      estimatedHours: Number(fd.get('estimatedHours') || 6),
+      estimatedHours: 6,
       understanding,
       confidence,
       started,
@@ -79,14 +78,13 @@ export default function AssignmentsPage() {
     setSpecMode(null)
     setSpecText('')
     if (fileRef.current) fileRef.current.value = ''
+    setFileName(null)
   }
 
   return (
-    <section className="landing-animated min-h-[130vh] w-full pt-32 md:pt-40 lg:pt-28">
+    <section className="loggedIn-bg min-h-[130vh] w-full pt-32 md:pt-40 lg:pt-28">
       <div className="mx-auto max-w-6xl px-4">
-        {/* Tabs were moved inside the content panel to avoid overlap with the navbar */}
-
-        <div className="rounded-3xl border border-white/30 bg-white/60 p-6 shadow-xl backdrop-blur-md">
+        <div className="rounded-3xl border border-[#CCD8E1]/50 bg-[#CCD8E1]/50 p-6 shadow-xl backdrop-blur-md">
           {/* Local tabs inside the panel */}
           <div className="mb-8 flex items-center justify-center gap-3">
             <button
@@ -118,24 +116,47 @@ export default function AssignmentsPage() {
                 <p className="text-slate-900 font-semibold">
                   Enter your assignment specifications:
                 </p>
-                <div className="flex gap-3">
-                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800">
+                <div className="flex items-center gap-3">
+                  <label
+                    onClick={() => setSpecMode('pdf')}
+                    className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-slate-200 ${
+                      specMode === 'pdf'
+                        ? 'bg-slate-900 text-white hover:bg-slate-800'
+                        : 'bg-white text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
                     <input
                       ref={fileRef}
                       type="file"
                       accept="application/pdf"
                       className="hidden"
-                      onChange={() => setSpecMode('pdf')}
+                      onChange={(ev) => {
+                        const f =
+                          ev.currentTarget.files && ev.currentTarget.files[0]
+                        if (f) setFileName(f.name)
+                        setSpecMode('pdf')
+                      }}
                     />
                     <span>Select PDF file</span>
                   </label>
+
                   <button
                     type="button"
                     onClick={() => setSpecMode('text')}
-                    className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
+                    className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold shadow-sm ${
+                      specMode === 'text'
+                        ? 'bg-slate-900 text-white hover:bg-slate-800'
+                        : 'bg-white text-slate-900 hover:bg-slate-50 ring-1 ring-slate-200'
+                    }`}
                   >
                     Enter Text
                   </button>
+
+                  {fileName && (
+                    <span className="ml-3 text-sm text-slate-700">
+                      {fileName}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -285,29 +306,7 @@ export default function AssignmentsPage() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-800">
-                    Estimated hours
-                  </label>
-                  <input
-                    name="estimatedHours"
-                    type="number"
-                    step="0.5"
-                    defaultValue={6}
-                    className="mt-2 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 shadow-inner"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-800">
-                    Course (optional)
-                  </label>
-                  <input
-                    name="course"
-                    className="mt-2 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 shadow-inner"
-                  />
-                </div>
-              </div>
+              {/* estimated hours and course inputs removed per request */}
 
               <div>
                 <label className="block text-sm font-semibold text-slate-800">
@@ -359,15 +358,12 @@ export default function AssignmentsPage() {
 
 function AssignmentCard({ a }: { a: Assignment }) {
   const due = useMemo(() => new Date(a.dueDate), [a.dueDate])
-  const dueStr = useMemo(
-    () =>
-      due.toLocaleDateString(undefined, {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      }),
-    [due]
-  )
+  const dueStr = useMemo(() => {
+    const dd = String(due.getDate()).padStart(2, '0')
+    const mm = String(due.getMonth() + 1).padStart(2, '0')
+    const yyyy = due.getFullYear()
+    return `${dd}/${mm}/${yyyy}`
+  }, [due])
 
   return (
     <div className="flex items-center justify-between gap-4 rounded-2xl bg-white/70 p-6 shadow ring-1 ring-white/60">

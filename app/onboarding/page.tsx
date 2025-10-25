@@ -161,7 +161,7 @@ export default function OnboardingPage() {
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
   const done = () => {
-    setUser({ id: "demo", name: name || "Student", course } as any);
+    setUser({ id: "demo", name: name || "User", course } as any);
     router.push("/");
   };
 

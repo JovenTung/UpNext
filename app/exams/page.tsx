@@ -26,11 +26,14 @@ export default function ExamsPage() {
   // @ts-ignore
   const storeExams: Exam[] | undefined = useStore((s) => s.exams)
   // @ts-ignore
-  const storeAddExam: ((e: Exam) => void) | undefined = useStore((s) => s.addExam)
+  const storeAddExam: ((e: Exam) => void) | undefined = useStore(
+    (s) => s.addExam
+  )
 
   const [localExams, setLocalExams] = useState<Exam[]>([])
   const exams = storeExams ?? localExams
-  const addExam = (e: Exam) => (storeAddExam ? storeAddExam(e) : setLocalExams((prev) => [e, ...prev]))
+  const addExam = (e: Exam) =>
+    storeAddExam ? storeAddExam(e) : setLocalExams((prev) => [e, ...prev])
 
   const [tab, setTab] = useState<'add' | 'view'>(exams.length ? 'view' : 'add')
 
@@ -59,15 +62,22 @@ export default function ExamsPage() {
     const started = String(fd.get('started') || 'no') as 'yes' | 'partly' | 'no'
     const file = (fileRef.current?.files && fileRef.current.files[0]) || null
 
-    const specType = specMode ?? (file ? 'pdf' : specText.trim() ? 'text' : undefined)
+    const specType =
+      specMode ?? (file ? 'pdf' : specText.trim() ? 'text' : undefined)
 
     const exam: Exam = {
       id: `${Date.now()}`,
       subject: subject || undefined,
       name,
-      examDateISO: examDate ? new Date(examDate).toISOString() : new Date().toISOString(),
-      startReviseISO: startRevise ? new Date(startRevise).toISOString() : undefined,
-      finishReviseISO: finishRevise ? new Date(finishRevise).toISOString() : undefined,
+      examDateISO: examDate
+        ? new Date(examDate).toISOString()
+        : new Date().toISOString(),
+      startReviseISO: startRevise
+        ? new Date(startRevise).toISOString()
+        : undefined,
+      finishReviseISO: finishRevise
+        ? new Date(finishRevise).toISOString()
+        : undefined,
       toughTopics: toughTopics || undefined,
       confidence,
       started,
@@ -94,14 +104,22 @@ export default function ExamsPage() {
             <button
               onClick={() => setTab('add')}
               type="button"
-              className={`nav-pill ${tab === 'add' ? 'bg-white font-bold text-slate-900 shadow-sm' : ''}`}
+              className={`nav-pill ${
+                tab === 'add'
+                  ? 'bg-white font-bold text-slate-900 shadow-sm'
+                  : ''
+              }`}
             >
               Add new exam
             </button>
             <button
               onClick={() => setTab('view')}
               type="button"
-              className={`nav-pill ${tab === 'view' ? 'bg-white font-bold text-slate-900 shadow-sm' : ''}`}
+              className={`nav-pill ${
+                tab === 'view'
+                  ? 'bg-white font-bold text-slate-900 shadow-sm'
+                  : ''
+              }`}
             >
               View exams
             </button>
@@ -111,7 +129,9 @@ export default function ExamsPage() {
             <form onSubmit={onAdd} className="space-y-6">
               {/* spec row */}
               <div className="flex flex-wrap items-center gap-4">
-                <p className="font-semibold text-slate-900">Enter your exam specifications:</p>
+                <p className="font-semibold text-slate-900">
+                  Enter your exam specifications:
+                </p>
                 <div className="flex gap-3">
                   <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-[#0F205A] px-3 py-2 text-sm font-semibold text-white hover:opacity-95">
                     <input
@@ -136,7 +156,9 @@ export default function ExamsPage() {
               {/* subject & date */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-800">Subject</label>
+                  <label className="block text-sm font-semibold text-slate-800">
+                    Subject
+                  </label>
                   <input
                     name="subject"
                     className="mt-2 w-full rounded-xl border border-[#CCD8E1]/70 bg-white/80 px-3 py-2 shadow-inner placeholder:text-slate-400"
@@ -144,7 +166,9 @@ export default function ExamsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-800">Exam date</label>
+                  <label className="block text-sm font-semibold text-slate-800">
+                    Exam date
+                  </label>
                   <input
                     name="examDate"
                     type="date"
@@ -155,7 +179,9 @@ export default function ExamsPage() {
 
               {/* exam name */}
               <div>
-                <label className="block text-sm font-semibold text-slate-800">Exam Name</label>
+                <label className="block text-sm font-semibold text-slate-800">
+                  Exam Name
+                </label>
                 <input
                   name="name"
                   className="mt-2 w-full rounded-xl border border-[#CCD8E1]/70 bg-white/80 px-3 py-2 shadow-inner"
@@ -168,7 +194,14 @@ export default function ExamsPage() {
                 <label className="block text-sm font-semibold text-slate-800">
                   How confident are you in this subject so far?
                 </label>
-                <input name="confidence" defaultValue={1} type="range" min={1} max={5} className="w-full" />
+                <input
+                  name="confidence"
+                  defaultValue={1}
+                  type="range"
+                  min={1}
+                  max={5}
+                  className="w-full"
+                />
                 <div className="flex justify-between text-xs text-slate-600">
                   <span>
                     <span className="font-semibold">1</span> Not confident
@@ -181,7 +214,9 @@ export default function ExamsPage() {
 
               {/* started revising? */}
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-800">Have you started revising yet?</label>
+                <label className="block text-sm font-semibold text-slate-800">
+                  Have you started revising yet?
+                </label>
                 <div className="flex gap-3">
                   {[
                     { label: 'Yes', value: 'yes' },
@@ -208,7 +243,8 @@ export default function ExamsPage() {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-slate-800">
-                    Which topics do you find most challenging or need more focus on?
+                    Which topics do you find most challenging or need more focus
+                    on?
                   </label>
                   <input
                     name="toughTopics"
@@ -232,7 +268,8 @@ export default function ExamsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-800">
-                    How many days before the exam would you like to finish your main revision?
+                    How many days before the exam would you like to finish your
+                    main revision?
                   </label>
                   <input
                     name="finishRevise"
@@ -245,7 +282,9 @@ export default function ExamsPage() {
               {/* spec text (optional) */}
               {specMode === 'text' && (
                 <div>
-                  <label className="block text-sm font-semibold text-slate-800">Exam Specification (text)</label>
+                  <label className="block text-sm font-semibold text-slate-800">
+                    Exam Specification (text)
+                  </label>
                   <textarea
                     className="mt-2 w-full rounded-xl border border-[#CCD8E1]/70 bg-white/80 px-3 py-2 shadow-inner"
                     rows={4}
@@ -277,7 +316,9 @@ export default function ExamsPage() {
 
               <div className="space-y-4">
                 {exams.length === 0 ? (
-                  <p className="text-center text-slate-700">No exams yet. Add your first one.</p>
+                  <p className="text-center text-slate-700">
+                    No exams yet. Add your first one.
+                  </p>
                 ) : (
                   exams.map((e) => <ExamCard key={e.id} e={e} />)
                 )}
@@ -292,11 +333,12 @@ export default function ExamsPage() {
 
 function ExamCard({ e }: { e: Exam }) {
   const examDate = useMemo(() => new Date(e.examDateISO), [e.examDateISO])
-  const examDateStr = useMemo(
-    () =>
-      examDate.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' }),
-    [examDate]
-  )
+  const examDateStr = useMemo(() => {
+    const dd = String(examDate.getDate()).padStart(2, '0')
+    const mm = String(examDate.getMonth() + 1).padStart(2, '0')
+    const yyyy = examDate.getFullYear()
+    return `${dd}/${mm}/${yyyy}`
+  }, [examDate])
 
   return (
     <div className="flex items-center justify-between gap-4 rounded-2xl bg-white/70 p-6 shadow ring-1 ring-white/60">
@@ -310,7 +352,9 @@ function ExamCard({ e }: { e: Exam }) {
           <p className="text-sm text-slate-800">
             <span className="font-semibold">Date:</span> {examDateStr}
           </p>
-          <h3 className="truncate text-lg font-semibold text-slate-900">{e.name}</h3>
+          <h3 className="truncate text-lg font-semibold text-slate-900">
+            {e.name}
+          </h3>
         </div>
       </div>
       <ProgressRing value={e.progress ?? 0} />

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useId } from 'react'
+import { useRouter } from 'next/navigation'
 import { useStore } from '@/lib/store/useStore'
 
 type Choice = { id: string; label: string }
@@ -65,7 +66,7 @@ function SubjectsPanel() {
   const [subjects, setSubjects] = useState<Subject[]>([
     { id: gen + '-1', name: 'Data Science', color: '#E57373' },
     { id: gen + '-2', name: 'Algorithms & Analysis', color: '#81C784' },
-    { id: gen + '-3', name: 'Usability Engineering', color: '#E5A345'},
+    { id: gen + '-3', name: 'Usability Engineering', color: '#E5A345' },
   ])
   const [name, setName] = useState('')
   const [color, setColor] = useState(COLOR_SWATCHES[1])
@@ -76,7 +77,8 @@ function SubjectsPanel() {
     setSubjects((s) => [...s, { id: crypto.randomUUID(), name: n, color }])
     setName('')
   }
-  const remove = (id: string) => setSubjects((s) => s.filter((x) => x.id !== id))
+  const remove = (id: string) =>
+    setSubjects((s) => s.filter((x) => x.id !== id))
 
   return (
     <div className="space-y-6 p-6">
@@ -95,8 +97,13 @@ function SubjectsPanel() {
               style={{ boxShadow: `inset 0 0 0 9999px ${s.color}20` }}
             >
               <div className="flex items-center gap-3">
-                <span className="inline-block h-3.5 w-3.5 rounded-full ring-2 ring-white" style={{ background: s.color }} />
-                <span className="text-base font-semibold text-slate-800">{s.name}</span>
+                <span
+                  className="inline-block h-3.5 w-3.5 rounded-full ring-2 ring-white"
+                  style={{ background: s.color }}
+                />
+                <span className="text-base font-semibold text-slate-800">
+                  {s.name}
+                </span>
               </div>
               <button
                 onClick={() => remove(s.id)}
@@ -126,7 +133,8 @@ function SubjectsPanel() {
               className="h-7 w-7 rounded-full ring-2 ring-white transition focus:ring-4 focus:ring-indigo-200"
               style={{
                 background: c,
-                boxShadow: color === c ? `0 0 0 2px ${c}66, 0 0 0 4px #fff` : undefined,
+                boxShadow:
+                  color === c ? `0 0 0 2px ${c}66, 0 0 0 4px #fff` : undefined,
               }}
               aria-label={`choose ${c}`}
             />
@@ -154,8 +162,8 @@ function ProfileForm() {
   return (
     <div className="space-y-8 p-6">
       <p className="text-sm text-slate-600">
-        Feel free to change your answers anytime. The more accurate your preferences,
-        the better your AI study planner can adapt to you.
+        Feel free to change your answers anytime. The more accurate your
+        preferences, the better your AI study planner can adapt to you.
       </p>
 
       <PillGroup
@@ -211,7 +219,9 @@ function ProfileForm() {
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm font-medium text-slate-800">What’s your main goal this semester?</p>
+        <p className="text-sm font-medium text-slate-800">
+          What’s your main goal this semester?
+        </p>
         <textarea
           value={goal}
           onChange={(e) => setGoal(e.target.value)}
@@ -227,10 +237,11 @@ function ProfileForm() {
 export default function ProfilePage() {
   const clearAll = useStore((s) => s.clearAll)
   const setUser = useStore((s) => s.setUser)
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<'profile' | 'subjects'>('profile')
 
   return (
-    <section className="min-h-[90vh] loggedIn-bg pt-28">
+    <section className="min-h-[100vh] loggedIn-bg pt-20">
       <div className="mx-auto max-w-6xl gap-6 px-4 py-10 md:grid md:grid-cols-12">
         {/* Sidebar */}
         <aside className="mb-6 md:col-span-4 md:mb-0">
@@ -241,8 +252,12 @@ export default function ProfilePage() {
               </div>
               <div>
                 <p className="font-semibold text-slate-900">Evelyn</p>
-                <p className="text-sm text-slate-600">s4160608@student.rmit.edu.au</p>
-                <p className="text-sm text-slate-600">Master of Information Technology</p>
+                <p className="text-sm text-slate-600">
+                  s4160608@student.rmit.edu.au
+                </p>
+                <p className="text-sm text-slate-600">
+                  Master of Information Technology
+                </p>
               </div>
             </div>
 
@@ -257,7 +272,10 @@ export default function ProfilePage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <button
                 className="rounded-full bg-[#0F205A] px-4 py-2 text-sm text-white shadow hover:opacity-95"
-                onClick={() => setUser(null)}
+                onClick={() => {
+                  setUser(null)
+                  router.push('/')
+                }}
               >
                 Log Out
               </button>
@@ -273,8 +291,7 @@ export default function ProfilePage() {
 
         {/* Main card with tabs */}
         <main className="md:col-span-8">
-        <div className="rounded-3xl bg-[#CCD8E1]/50 shadow-xl backdrop-blur-2xl">
-
+          <div className="rounded-3xl bg-[#CCD8E1]/50 shadow-xl backdrop-blur-2xl">
             {/* Tabs header */}
             <div className="flex items-center gap-2 rounded-t-3xl border-b border-[#CCD8E1]/50 bg-white/60 px-6 py-4">
               <button
