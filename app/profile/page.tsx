@@ -253,7 +253,7 @@ export default function ProfilePage() {
               <div>
                 <p className="font-semibold text-slate-900">Evelyn</p>
                 <p className="text-sm text-slate-600">
-                  s4160608@student.rmit.edu.au
+                  s4189472@student.rmit.edu.au
                 </p>
                 <p className="text-sm text-slate-600">
                   Master of Information Technology
