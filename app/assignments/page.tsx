@@ -82,13 +82,13 @@ export default function AssignmentsPage() {
   }
 
   return (
-    <section className="landing-animated min-h-[100vh] w-full py-24">
+    <section className="landing-animated min-h-[130vh] w-full pt-32 md:pt-40 lg:pt-28">
       <div className="mx-auto max-w-6xl px-4">
         {/* Tabs were moved inside the content panel to avoid overlap with the navbar */}
 
-        <div className="rounded-3xl border border-white/30 bg-white/60 p-6 shadow-xl backdrop-blur-md md:p-10">
+        <div className="rounded-3xl border border-white/30 bg-white/60 p-6 shadow-xl backdrop-blur-md">
           {/* Local tabs inside the panel */}
-          <div className="mb-6 flex items-center justify-center gap-3">
+          <div className="mb-8 flex items-center justify-center gap-3">
             <button
               onClick={() => setTab('add')}
               type="button"
