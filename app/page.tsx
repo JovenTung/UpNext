@@ -36,13 +36,14 @@ export default function HomePage() {
     >
       <div className="mx-auto flex h-full max-w-5xl flex-col items-center justify-center gap-6 text-center">
         <h1 className="whitespace-nowrap text-3xl font-extrabold md:text-5xl">
-          An Assignment Planner That Actually <span className="text-blue-600">Gets</span> You
+          An Assignment Planner That Actually{' '}
+          <span className="text-blue-600">Gets</span> You
         </h1>
         <p className="max-w-2xl text-slate-700">
           Upload your assignments, tell us how you work, and get a plan that
           adapts to your time, focus, and stress.
         </p>
-        <br/>
+        <br />
 
         <div className="relative grid w-full grid-cols-1 items-center gap-8 md:grid-cols-3">
           {/* Left floating icons */}
@@ -63,15 +64,22 @@ export default function HomePage() {
 
           {/* Center illustration */}
           <div className="order-1 mx-auto md:order-2">
-            <Image
-              src="/branding/logo.png"
-              alt="UpNext logo"
-              width={420}
-              height={420}
-              priority
-              className="animate-float-slow"
-            />
-            <h1 className="text-3xl font-extrabold md:text-5xl">UpNext</h1>
+            <div className="relative mx-auto flex w-[300px] max-w-full flex-col items-center">
+              <div className="relative w-full aspect-square overflow-hidden rounded-full border border-white/20 bg-white/8 p-1 shadow-xl backdrop-blur-lg supports-[backdrop-filter]:bg-white/8">
+                <Image
+                  src="/branding/logo.png"
+                  alt="UpNext logo"
+                  width={320}
+                  height={320}
+                  priority
+                  className="animate-float-slow mx-auto h-full w-full scale-225 rounded-full object-contain"
+                />
+                <div className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-black/5" />
+              </div>
+              <h1 className="m-4 text-3xl font-extrabold md:text-5xl">
+                UpNext
+              </h1>
+            </div>
           </div>
 
           {/* Right floating icons */}
@@ -98,7 +106,7 @@ export default function HomePage() {
 function LoggedInHome() {
   const name = useStore((s) => s.user?.name ?? 'Student')
   return (
-    <section className="min-h-screen w-full bg-slate-100/70">
+    <section className="loggedIn-bg min-h-[100vh] w-full">
       <div className="mx-auto max-w-5xl px-4 py-24">
         <h1 className="text-2xl md:text-3xl">
           Good morning <span className="font-extrabold">{name}</span>, here’s

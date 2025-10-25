@@ -19,7 +19,7 @@ export default function NavBar() {
     }`
 
   return (
-    <div className="fixed inset-x-0 top-4 z-50 flex justify-center px-4">
+    <div className="fixed inset-x-0 top-6 z-50 flex justify-center px-4">
       <div className="flex items-center gap-4">
         {/* Logo circle button next to centered menu */}
         <Link
@@ -27,7 +27,7 @@ export default function NavBar() {
           aria-label="UpNext Home"
           className="flex h-12 w-12 items-center justify-center rounded-full border border-white/40 bg-white/70 shadow backdrop-blur-md hover:bg-white"
         >
-          <span className="inline-block h-6 w-6 rounded-full bg-blue-600" />
+          <img src="/branding/logo.png" alt="UpNext Logo" className="h-13 w-13" />
         </Link>
 
         {/* Glass menu */}
@@ -50,7 +50,7 @@ export default function NavBar() {
           ) : (
             <>
               <Link href="/" className={linkClass('/')}>
-                Homepage
+                Dashboard
               </Link>
               <Link href="/assignments" className={linkClass('/assignments')}>
                 Assignments

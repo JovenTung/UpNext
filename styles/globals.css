@@ -45,6 +45,11 @@ body {
     linear-gradient(180deg, #7ec7f4 0%, #aee6ff 40%, #b6e9ff 60%, #9cd7ff 100%);
 }
 
+.loggedIn-bg {
+  @apply bg-center bg-cover bg-no-repeat;
+  background-image: url('/background/dashboardWallpaper.png');
+}
+
 /* Animated landing gradient (white <-> blue, subtle wave) */
 .landing-animated {
   position: relative;

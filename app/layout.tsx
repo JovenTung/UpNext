@@ -17,8 +17,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <main className="min-h-screen">
           <RouteTransition>{children}</RouteTransition>
         </main>
-        <footer>
-        </footer>
       </body>
     </html>
   )
