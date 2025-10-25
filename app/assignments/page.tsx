@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo, useRef, useState, useEffect } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useStore } from '@/lib/store/useStore'
 import type { Assignment } from '@/lib/types'
 import ProgressRing from '@/components/ProgressRing'
@@ -9,35 +10,24 @@ export default function AssignmentsPage() {
   const assignments = useStore((s) => s.assignments)
   const addAssignment = useStore((s) => s.addAssignment)
 
-  const [tab, setTab] = useState<'add' | 'view'>(() =>
-    assignments.length ? 'view' : 'add'
-  )
+  const searchParams = useSearchParams()
+  const requestedTab = searchParams?.get('tab')
 
-  // read query param on client after mount to avoid CSR-bailout warning
-  useEffect(() => {
-    try {
-      if (typeof window === 'undefined') return
-      const sp = new URLSearchParams(window.location.search)
-      if (sp.get('tab') === 'add') setTab('add')
-    } catch (e) {
-      // ignore
-    }
-  }, [])
+  const [tab, setTab] = useState<'add' | 'view'>(() => {
+    if (requestedTab === 'add') return 'add'
+    return assignments.length ? 'view' : 'add'
+  })
 
   const [specMode, setSpecMode] = useState<'pdf' | 'text' | null>(null)
   const [specText, setSpecText] = useState('')
   const fileRef = useRef<HTMLInputElement | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
 
+  // simple progress heuristic combining started + understanding + confidence
   const computeProgress = (a: Partial<Assignment>) => {
     const u = Number(a.understanding ?? 1)
     const c = Number(a.confidence ?? 1)
-    const started =
-      (a as any).started === 'yes'
-        ? 1
-        : (a as any).started === 'partly'
-        ? 0.5
-        : 0
+    const started = (a as any).started === 'yes' ? 1 : (a as any).started === 'partly' ? 0.5 : 0
     const base = ((u - 1) / 4) * 40 + ((c - 1) / 4) * 40 + started * 20
     return Math.round(Math.max(0, Math.min(100, base)))
   }
@@ -52,48 +42,33 @@ export default function AssignmentsPage() {
     const idealStartDate = String(fd.get('idealStartDate') || '')
     const comfortableDueDate = String(fd.get('comfortableDueDate') || '')
 
-    const understanding = Number(fd.get('understanding') || 1) as
-      | 1
-      | 2
-      | 3
-      | 4
-      | 5
+    const understanding = Number(fd.get('understanding') || 1) as 1 | 2 | 3 | 4 | 5
     const confidence = Number(fd.get('confidence') || 1) as 1 | 2 | 3 | 4 | 5
     const started = String(fd.get('started') || 'no') as 'yes' | 'partly' | 'no'
 
     // NEW: group/individual
-    const workType = String(fd.get('workType') || 'individual') as
-      | 'group'
-      | 'individual'
+    const workType = String(fd.get('workType') || 'individual') as 'group' | 'individual'
 
     const file = (fileRef.current?.files && fileRef.current.files[0]) || null
-    const specType =
-      specMode ?? (file ? 'pdf' : specText.trim() ? 'text' : undefined)
+    const specType = specMode ?? (file ? 'pdf' : specText.trim() ? 'text' : undefined)
 
     const a = {
       id: `${Date.now()}`,
       title,
       subject: subject || undefined,
-      dueDate: dueDate
-        ? new Date(dueDate).toISOString()
-        : new Date().toISOString(),
-      idealStartDate: idealStartDate
-        ? new Date(idealStartDate).toISOString()
-        : undefined,
-      comfortableDueDate: comfortableDueDate
-        ? new Date(comfortableDueDate).toISOString()
-        : undefined,
+      dueDate: dueDate ? new Date(dueDate).toISOString() : new Date().toISOString(),
+      idealStartDate: idealStartDate ? new Date(idealStartDate).toISOString() : undefined,
+      comfortableDueDate: comfortableDueDate ? new Date(comfortableDueDate).toISOString() : undefined,
       estimatedHours: 6,
       understanding,
       confidence,
       started,
-
       notes: String(fd.get('notes') || '') || undefined,
       specType,
       specText: specType === 'text' ? specText : undefined,
       specFileName: specType === 'pdf' && file ? file.name : undefined,
       progress: computeProgress({ understanding, confidence, started }),
-      workType,
+      workType, // keep for future
     } as any as Assignment
 
     addAssignment(a)
@@ -109,27 +84,19 @@ export default function AssignmentsPage() {
     <section className="loggedIn-bg min-h-[130vh] w-full pt-32 md:pt-40 lg:pt-28">
       <div className="mx-auto max-w-6xl px-4">
         <div className="rounded-3xl border border-[#CCD8E1]/50 bg-[#CCD8E1]/50 p-6 shadow-xl backdrop-blur-md">
-          {/* Local tabs inside the panel */}
+          {/* Tabs inside the panel */}
           <div className="mb-8 flex items-center justify-center gap-3">
             <button
               onClick={() => setTab('add')}
               type="button"
-              className={`nav-pill ${
-                tab === 'add'
-                  ? 'bg-white font-bold text-slate-900 shadow-sm'
-                  : ''
-              }`}
+              className={`nav-pill ${tab === 'add' ? 'bg-white font-bold text-slate-900 shadow-sm' : ''}`}
             >
               Add new assignment
             </button>
             <button
               onClick={() => setTab('view')}
               type="button"
-              className={`nav-pill ${
-                tab === 'view'
-                  ? 'bg-white font-bold text-slate-900 shadow-sm'
-                  : ''
-              }`}
+              className={`nav-pill ${tab === 'view' ? 'bg-white font-bold text-slate-900 shadow-sm' : ''}`}
             >
               View assignments
             </button>
@@ -139,9 +106,7 @@ export default function AssignmentsPage() {
             <form onSubmit={onAdd} className="space-y-6">
               {/* spec row */}
               <div className="flex flex-wrap items-center gap-4">
-                <p className="font-semibold text-slate-900">
-                  Enter your assignment specifications:
-                </p>
+                <p className="font-semibold text-slate-900">Enter your assignment specifications:</p>
                 <div className="flex items-center gap-3">
                   <label
                     onClick={() => setSpecMode('pdf')}
@@ -157,8 +122,7 @@ export default function AssignmentsPage() {
                       accept="application/pdf"
                       className="hidden"
                       onChange={(ev) => {
-                        const f =
-                          ev.currentTarget.files && ev.currentTarget.files[0]
+                        const f = ev.currentTarget.files && ev.currentTarget.files[0]
                         if (f) setFileName(f.name)
                         setSpecMode('pdf')
                       }}
@@ -178,20 +142,14 @@ export default function AssignmentsPage() {
                     Enter Text
                   </button>
 
-                  {fileName && (
-                    <span className="ml-1 text-sm text-slate-700">
-                      {fileName}
-                    </span>
-                  )}
+                  {fileName && <span className="ml-1 text-sm text-slate-700">{fileName}</span>}
                 </div>
               </div>
 
               {/* subject & date */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-800">
-                    Subject
-                  </label>
+                  <label className="block text-sm font-semibold text-slate-800">Subject</label>
                   <input
                     name="subject"
                     className="mt-2 w-full rounded-xl border border-[#CCD8E1]/70 bg-white/80 px-3 py-2 shadow-inner placeholder:text-slate-400"
@@ -199,9 +157,7 @@ export default function AssignmentsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-800">
-                    Due date
-                  </label>
+                  <label className="block text-sm font-semibold text-slate-800">Due date</label>
                   <input
                     name="dueDate"
                     type="date"
@@ -212,15 +168,15 @@ export default function AssignmentsPage() {
 
               {/* name */}
               <div>
-                <label className="block text-sm font-semibold text-slate-800">
-                  Assignment Name
-                </label>
+                <label className="block text-sm font-semibold text-slate-800">Assignment Name</label>
                 <input
                   name="title"
                   className="mt-2 w-full rounded-xl border border-[#CCD8E1]/70 bg-white/80 px-3 py-2 shadow-inner"
                   placeholder="Give this assignment a name"
                 />
               </div>
+
+              {/* group/individual */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-800">
                   Is this an individual assignment or group assignment?
@@ -245,26 +201,16 @@ export default function AssignmentsPage() {
                   ))}
                 </div>
               </div>
+
               {/* understanding */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-800">
                   How well do you understand this assignment so far?
                 </label>
-                <input
-                  name="understanding"
-                  defaultValue={1}
-                  type="range"
-                  min={1}
-                  max={5}
-                  className="w-full"
-                />
+                <input name="understanding" defaultValue={1} type="range" min={1} max={5} className="w-full" />
                 <div className="flex justify-between text-xs text-slate-600">
-                  <span>
-                    <span className="font-semibold">1</span> Not at all
-                  </span>
-                  <span>
-                    <span className="font-semibold">5</span> Very well
-                  </span>
+                  <span><span className="font-semibold">1</span> Not at all</span>
+                  <span><span className="font-semibold">5</span> Very well</span>
                 </div>
               </div>
 
@@ -273,21 +219,10 @@ export default function AssignmentsPage() {
                 <label className="block text-sm font-semibold text-slate-800">
                   How confident are you in this topic area?
                 </label>
-                <input
-                  name="confidence"
-                  defaultValue={1}
-                  type="range"
-                  min={1}
-                  max={5}
-                  className="w-full"
-                />
+                <input name="confidence" defaultValue={1} type="range" min={1} max={5} className="w-full" />
                 <div className="flex justify-between text-xs text-slate-600">
-                  <span>
-                    <span className="font-semibold">1</span> Not confident
-                  </span>
-                  <span>
-                    <span className="font-semibold">5</span> Very confident
-                  </span>
+                  <span><span className="font-semibold">1</span> Not confident</span>
+                  <span><span className="font-semibold">5</span> Very confident</span>
                 </div>
               </div>
 
@@ -360,9 +295,7 @@ export default function AssignmentsPage() {
 
               {/* notes */}
               <div>
-                <label className="block text-sm font-semibold text-slate-800">
-                  Notes
-                </label>
+                <label className="block text-sm font-semibold text-slate-800">Notes</label>
                 <textarea
                   name="notes"
                   rows={2}
@@ -381,6 +314,7 @@ export default function AssignmentsPage() {
               </div>
             </form>
           ) : (
+            /* ---------------- VIEW (HARDCODED FOR DEMO) ---------------- */
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div />
@@ -390,22 +324,99 @@ export default function AssignmentsPage() {
               </div>
 
               <div className="space-y-4">
-                {assignments.length === 0 ? (
-                  <p className="text-center text-slate-600">
-                    No assignments yet. Add your first one.
-                  </p>
-                ) : (
-                  assignments
-                    .slice()
-                    .reverse()
-                    .map((a) => <AssignmentCard key={a.id} a={a} />)
-                )}
+                <DemoAssignmentCard
+                  subject="Algorithms & Analysis"
+                  due="06/11/2025"
+                  title="Algorithms Final Report"
+                  progressLabel="0% Progress"
+                  badge="Individual"
+                  ai={{
+                    bullets: [
+                      '📘 Step 1: Review lecture notes on graph algorithms (1.5h)',
+                      '🧠 Step 2: Practice Dijkstra & Kruskal problems (2h)',
+                      '💡 Step 3: Draft complexity analysis early (2h)',
+                      '🪶 Step 4: Polish report & references (1h)',
+                    ],
+                    footnote:
+                      'Based on your confidence (3/5) and understanding (2/5), AI suggests visual learning and short daily sessions.',
+                  }}
+                />
               </div>
             </div>
           )}
         </div>
       </div>
     </section>
+  )
+}
+
+function DemoAssignmentCard({
+  subject,
+  due,
+  title,
+  progressLabel,
+  badge,
+  progressPillColor = '#0F205A',
+  ai,
+}: {
+  subject: string
+  due: string
+  title: string
+  progressLabel: string
+  badge?: 'Group' | 'Individual' | string
+  progressPillColor?: string
+  ai: { bullets: string[]; footnote: string }
+}) {
+  return (
+    <div className="rounded-2xl bg-white/70 p-6 shadow ring-1 ring-white/60">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-start gap-4">
+          <span
+            className="inline-flex shrink-0 items-center rounded-full px-3 py-1 text-xs font-bold text-white"
+            style={{ background: progressPillColor }}
+          >
+            {subject}
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm text-slate-800">
+              <span className="font-semibold">Due:</span> {due}
+            </p>
+            <h3 className="truncate text-lg font-semibold text-slate-900">{title}</h3>
+            {badge && (
+              <span className="mt-1 inline-flex items-center rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-800 ring-1 ring-[#CCD8E1]/70">
+                {badge}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div
+          className="shrink-0 rounded-full px-4 py-2 text-sm font-semibold text-white shadow"
+          style={{ background: progressPillColor }}
+        >
+          {progressLabel}
+        </div>
+      </div>
+
+      {/* Mock AI recommendation */}
+      <div className="mt-4 rounded-xl border border-[#CCD8E1]/60 bg-white/80 p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <h4 className="text-base font-semibold text-slate-900">✨ AI Study Recommendation</h4>
+          <div className="flex gap-2">
+            <button className="rounded-full bg-[#0F205A] px-3 py-1.5 text-xs font-semibold text-white shadow hover:opacity-95">
+              Add to calendar
+            </button>
+          </div>
+        </div>
+
+        <ul className="space-y-1 text-sm text-slate-700">
+          {ai.bullets.map((b, i) => (
+            <li key={i}>{b}</li>
+          ))}
+        </ul>
+        <p className="mt-2 text-xs text-slate-600">{ai.footnote}</p>
+      </div>
+    </div>
   )
 }
 
@@ -430,9 +441,7 @@ function AssignmentCard({ a }: { a: Assignment }) {
           <p className="text-sm text-slate-800">
             <span className="font-semibold">Due:</span> {dueStr}
           </p>
-          <h3 className="truncate text-lg font-semibold text-slate-900">
-            {a.title}
-          </h3>
+          <h3 className="truncate text-lg font-semibold text-slate-900">{a.title}</h3>
         </div>
       </div>
       <ProgressRing value={(a as any).progress ?? 0} />
